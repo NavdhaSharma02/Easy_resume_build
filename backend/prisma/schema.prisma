@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  resumes   Resume[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Resume {
+  id           String      @id @default(cuid())
+  userId       String
+  title        String
+  template     Template    @default(CLASSIC)
+  resumeData   Json
+  latexContent String?     @db.Text
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  atsReports   ATSReport[]
+
+  @@index([userId])
+}
+
+model ATSReport {
+  id              String   @id @default(cuid())
+  resumeId        String
+  score           Int
+  keywordMatch    Int
+  missingKeywords String[]
+  strengths       String[]
+  issues          String[]
+  createdAt       DateTime @default(now())
+  resume          Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId])
+}
+
+enum Template {
+  CLASSIC
+  MODERN
+  COMPACT
+}
