@@ -129,15 +129,6 @@ export function generateLatex(data: ResumeData, template: TemplateId) {
 \\DeclareRobustCommand{\\ebseries}{\\fontseries{eb}\\selectfont}
 \\DeclareTextFontCommand{\\texteb}{\\ebseries}
 
-\\usepackage{contour}
-\\usepackage[normalem]{ulem}
-\\renewcommand{\\ULdepth}{1.8pt}
-\\contourlength{0.8pt}
-\\newcommand{\\myuline}[1]{%
-  \\uline{\\phantom{#1}}%
-  \\llap{\\contour{white}{#1}}%
-}
-
 \\usepackage{tgheros}
 \\renewcommand*\\familydefault{\\sfdefault}
 \\usepackage[T1]{fontenc}
