@@ -10,12 +10,15 @@ import resumeRoutes from "./routes/resume.routes.js";
 export const app = express();
 
 app.use(helmet());
-const allowedOrigins = new Set(env.CLIENT_URL.split(",").map((origin) => origin.trim()).filter(Boolean));
+const normalizeOrigin = (origin: string) => origin.trim().replace(/\/+$/, "");
+const allowedOrigins = new Set(env.CLIENT_URL.split(",").map(normalizeOrigin).filter(Boolean));
 const isLocalFrontend = (origin: string) => /^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(origin);
+const isRailwayApp = (origin: string) => /^https:\/\/[a-z0-9-]+\.up\.railway\.app$/.test(origin);
 
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.has(origin) || isLocalFrontend(origin)) return callback(null, true);
+    const normalizedOrigin = origin ? normalizeOrigin(origin) : "";
+    if (!origin || allowedOrigins.has(normalizedOrigin) || isLocalFrontend(normalizedOrigin) || isRailwayApp(normalizedOrigin)) return callback(null, true);
     return callback(new Error(`Origin ${origin} is not allowed by CORS`));
   }
 }));
