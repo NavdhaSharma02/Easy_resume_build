@@ -107,7 +107,7 @@ password123
 
 ## PDF Generation
 
-PDF generation requires Docker Desktop to be running.
+Local PDF generation requires Docker Desktop to be running.
 
 The first PDF generation can take time because Docker may need to pull the TeX Live image:
 
@@ -116,6 +116,14 @@ docker pull texlive/texlive:latest
 ```
 
 After the image is downloaded, PDF generation should be faster.
+
+For Railway production PDF generation, deploy the backend with `backend/Dockerfile`. The Dockerfile installs TeX Live into the backend image and sets:
+
+```text
+PDF_ENGINE=local
+```
+
+This avoids running `docker run` inside the hosted backend container.
 
 ## Deployment
 
@@ -145,6 +153,27 @@ Add this environment variable in Vercel:
 
 ```text
 VITE_API_URL=https://your-backend-url.com
+```
+
+## Railway Backend Deployment
+
+For the backend service:
+
+```text
+Root Directory: /backend
+Builder: Dockerfile
+Dockerfile Path: Dockerfile
+Pre-deploy Command: npm run db:deploy
+Start Command: npm start
+```
+
+Backend variables:
+
+```text
+DATABASE_URL=<Railway Postgres DATABASE_URL>
+JWT_SECRET=<long random secret>
+CLIENT_URL=<frontend public URL>
+PDF_ENGINE=local
 ```
 
 ## Backend Endpoints

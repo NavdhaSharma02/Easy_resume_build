@@ -32,29 +32,36 @@ export async function compileLatexToPdf(latexContent: string) {
 
   try {
     await writeFile(texPath, sanitizeLatex(latexContent), "utf8");
-    await execFileAsync(
-      "docker",
-      [
-        "run",
-        "--rm",
-        "--network",
-        "none",
-        "--cpus",
-        "1",
-        "--memory",
-        "1g",
-        "-v",
-        `${workdir}:/work`,
-        "-w",
-        "/work",
-        env.LATEX_DOCKER_IMAGE,
-        "pdflatex",
-        "-interaction=nonstopmode",
-        "-halt-on-error",
-        "resume.tex"
-      ],
-      { timeout: dockerTimeoutMs }
-    );
+    if (env.PDF_ENGINE === "local") {
+      await execFileAsync("pdflatex", ["-interaction=nonstopmode", "-halt-on-error", "resume.tex"], {
+        cwd: workdir,
+        timeout: dockerTimeoutMs
+      });
+    } else {
+      await execFileAsync(
+        "docker",
+        [
+          "run",
+          "--rm",
+          "--network",
+          "none",
+          "--cpus",
+          "1",
+          "--memory",
+          "1g",
+          "-v",
+          `${workdir}:/work`,
+          "-w",
+          "/work",
+          env.LATEX_DOCKER_IMAGE,
+          "pdflatex",
+          "-interaction=nonstopmode",
+          "-halt-on-error",
+          "resume.tex"
+        ],
+        { timeout: dockerTimeoutMs }
+      );
+    }
 
     return await readFile(pdfPath);
   } catch (error) {

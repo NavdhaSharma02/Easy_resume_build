@@ -44,7 +44,7 @@ function submit() {
       <button class="w-full rounded-md bg-moss px-3 py-2 text-sm font-medium text-white hover:bg-teal-800">
         {{ mode === "signup" ? "Create account" : "Login" }}
       </button>
-      <p class="mt-4 text-xs text-slate-500">Frontend-only for now. Any email works.</p>
+      <p class="mt-4 text-xs text-slate-500">Use your account or the seeded demo login after backend setup.</p>
     </form>
   </main>
 </template>
