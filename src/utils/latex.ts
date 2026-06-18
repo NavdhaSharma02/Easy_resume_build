@@ -120,7 +120,6 @@ export function generateLatex(data: ResumeData, template: TemplateId) {
 \\usepackage[english]{babel}
 \\usepackage{tabularx}
 \\usepackage{fontawesome5}
-\\usepackage[scale=0.90,lf]{FiraMono}
 
 \\definecolor{light-grey}{gray}{0.83}
 \\definecolor{dark-grey}{gray}{0.3}
@@ -128,10 +127,6 @@ export function generateLatex(data: ResumeData, template: TemplateId) {
 
 \\DeclareRobustCommand{\\ebseries}{\\fontseries{eb}\\selectfont}
 \\DeclareTextFontCommand{\\texteb}{\\ebseries}
-
-\\usepackage{tgheros}
-\\renewcommand*\\familydefault{\\sfdefault}
-\\usepackage[T1]{fontenc}
 
 \\pagestyle{fancy}
 \\fancyhf{}
