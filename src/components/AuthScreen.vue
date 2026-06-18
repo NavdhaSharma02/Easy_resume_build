@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { FileText } from "lucide-vue-next";
 
 const emit = defineEmits<{
-  authenticated: [{ name: string; email: string }];
+  authenticated: [{ mode: "login" | "signup"; name: string; email: string; password: string }];
 }>();
 
 const mode = ref<"login" | "signup">("login");
@@ -13,8 +13,10 @@ const password = ref("password123");
 
 function submit() {
   emit("authenticated", {
+    mode: mode.value,
     name: name.value || "Demo User",
-    email: email.value
+    email: email.value,
+    password: password.value
   });
 }
 </script>

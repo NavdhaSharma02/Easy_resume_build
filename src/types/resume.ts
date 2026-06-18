@@ -43,9 +43,26 @@ export type Resume = {
   id: string;
   title: string;
   template: TemplateId;
+  latexContent?: string;
   updatedAt: string;
   atsScore: number;
   data: ResumeData;
+};
+
+export type ApiUser = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+export type ApiResume = {
+  id: string;
+  title: string;
+  template: "CLASSIC" | "MODERN" | "COMPACT";
+  resumeData: ResumeData;
+  latexContent?: string;
+  updatedAt: string;
+  atsReports?: Array<{ score: number }>;
 };
 
 export type AtsReport = {
