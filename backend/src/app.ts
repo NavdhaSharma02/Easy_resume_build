@@ -10,7 +10,7 @@ import resumeRoutes from "./routes/resume.routes.js";
 export const app = express();
 
 app.use(helmet());
-const allowedOrigins = new Set([env.CLIENT_URL]);
+const allowedOrigins = new Set(env.CLIENT_URL.split(",").map((origin) => origin.trim()).filter(Boolean));
 const isLocalFrontend = (origin: string) => /^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(origin);
 
 app.use(cors({

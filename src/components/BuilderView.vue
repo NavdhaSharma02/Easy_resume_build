@@ -3,7 +3,7 @@ import { computed, ref } from "vue";
 import { ArrowLeft, Download, FileCode2, FileText, Save, Wand2 } from "lucide-vue-next";
 import type { AtsReport, Resume, TemplateId } from "../types/resume";
 import { analyzeResume } from "../utils/ats";
-import { apiUrl } from "../utils/api";
+import { API_URL, apiUrl } from "../utils/api";
 import { generateLatex } from "../utils/latex";
 import AnalyticsPanel from "./AnalyticsPanel.vue";
 import EntrySection from "./EntrySection.vue";
@@ -71,7 +71,10 @@ async function generatePdf() {
     pdfPreviewUrl.value = url;
     activeTab.value = "pdf";
   } catch (error) {
-    pdfError.value = error instanceof Error ? error.message : "PDF generation failed";
+    const message = error instanceof Error ? error.message : "PDF generation failed";
+    pdfError.value = message === "Load failed" || message === "Failed to fetch"
+      ? `Could not reach the backend at ${API_URL}. Check VITE_API_URL on the frontend and CLIENT_URL on the backend.`
+      : message;
     activeTab.value = "pdf";
   } finally {
     isGeneratingPdf.value = false;
