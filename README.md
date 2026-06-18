@@ -1,6 +1,6 @@
 # Easy_Resume
 
-Easy_Resume is an ATS-friendly LaTeX resume builder with a Vue frontend, Express backend, PostgreSQL database, rule-based ATS analysis, LaTeX generation, and Docker-based PDF compilation.
+Easy_Resume is an ATS-friendly LaTeX resume builder with a Vue frontend, Express backend, PostgreSQL database, ATS analysis, LaTeX generation, and Docker-based PDF generation.
 
 ## Stack
 
@@ -10,25 +10,24 @@ Easy_Resume is an ATS-friendly LaTeX resume builder with a Vue frontend, Express
 - Authentication: JWT and bcrypt
 - PDF generation: TeX Live inside Docker
 
-## Features
-
-- Login and sign-up
-- Resume dashboard
-- Create, edit, duplicate, and delete resumes
-- Structured resume builder
-- Education GPA / CGPA field
-- LaTeX preview
-- PDF generation, preview, and download
-- ATS score and keyword analysis
-- Persistent PostgreSQL database
-- Responsive dark mode UI
-
 ## Local Frontend Setup
 
 Install dependencies:
 
 ```bash
 npm install
+```
+
+Create a frontend environment file:
+
+```bash
+cp .env.example .env.local
+```
+
+For local development:
+
+```text
+VITE_API_URL="http://127.0.0.1:4000"
 ```
 
 Start the frontend:
@@ -118,6 +117,36 @@ docker pull texlive/texlive:latest
 
 After the image is downloaded, PDF generation should be faster.
 
+## Deployment
+
+The frontend can be deployed on Vercel, Netlify, Render, or Railway.
+
+The backend and database should be deployed separately unless using a platform that supports multiple services, such as Railway, Render, or Fly.io.
+
+For deployed frontend builds, set:
+
+```text
+VITE_API_URL=https://your-backend-url.com
+```
+
+## Vercel Frontend Deployment
+
+Use these Vercel settings:
+
+```text
+Framework Preset: Vite
+Root Directory: ./
+Install Command: npm install
+Build Command: npm run build
+Output Directory: dist
+```
+
+Add this environment variable in Vercel:
+
+```text
+VITE_API_URL=https://your-backend-url.com
+```
+
 ## Backend Endpoints
 
 - `POST /api/auth/signup`
@@ -132,45 +161,3 @@ After the image is downloaded, PDF generation should be faster.
 - `POST /api/resumes/:id/generate-pdf`
 - `POST /api/ats/analyze`
 - `POST /api/pdf/generate`
-
-## Deploying the Frontend on Vercel
-
-Vercel is suitable for the Vue frontend.
-
-The backend, PostgreSQL database, and Docker-based PDF generation should be deployed separately on a backend hosting platform such as Render, Railway, or Fly.io.
-
-### Vercel Steps
-
-1. Push this project to GitHub.
-
-2. Go to Vercel and create a new project.
-
-3. Import the GitHub repository.
-
-4. Use these project settings:
-
-```text
-Framework Preset: Vite
-Root Directory: ./
-Install Command: npm install
-Build Command: npm run build
-Output Directory: dist
-```
-
-5. Add frontend environment variables if the frontend is connected to a deployed backend:
-
-```text
-VITE_API_URL=https://your-backend-url.com
-```
-
-6. Deploy.
-
-After deployment, every push to the connected GitHub branch can trigger a new Vercel deployment.
-
-## Production Notes
-
-- The frontend can be deployed to Vercel.
-- The backend should be deployed separately.
-- PostgreSQL should use a managed provider such as Neon, Supabase, Railway, or Render Postgres.
-- Docker-based PDF generation may not work on all backend hosts.
-- For production PDF generation, use a backend host that supports Docker or build a custom backend Docker image with TeX Live installed.

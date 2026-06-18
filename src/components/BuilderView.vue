@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { ArrowLeft, Download, FileCode2, FileText, Save, Wand2 } from "lucide-vue-next";
 import type { AtsReport, Resume, TemplateId } from "../types/resume";
 import { analyzeResume } from "../utils/ats";
+import { apiUrl } from "../utils/api";
 import { generateLatex } from "../utils/latex";
 import AnalyticsPanel from "./AnalyticsPanel.vue";
 import EntrySection from "./EntrySection.vue";
@@ -53,7 +54,7 @@ async function generatePdf() {
   pdfError.value = "";
 
   try {
-    const response = await fetch("http://127.0.0.1:4000/api/pdf/generate", {
+    const response = await fetch(apiUrl("/api/pdf/generate"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ latexContent: latex.value })
