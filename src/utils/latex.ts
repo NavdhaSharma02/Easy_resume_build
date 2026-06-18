@@ -96,6 +96,11 @@ const headerLinks = (data: ResumeData) => {
   return contact.join(" \\hspace{1pt} $|$ ");
 };
 
+const headerContactLine = (data: ResumeData) => {
+  const contact = headerLinks(data);
+  return contact ? `    \\small ${contact}\n    \\\\ \\vspace{-3pt}` : "    \\vspace{-8pt}";
+};
+
 export function generateLatex(data: ResumeData, template: TemplateId) {
   void template;
 
@@ -183,8 +188,7 @@ export function generateLatex(data: ResumeData, template: TemplateId) {
 %----------HEADING----------
 \\begin{center}
     \\textbf{\\Huge ${latexText(data.personal.fullName || "Your Name")}} \\\\ \\vspace{5pt}
-    \\small ${headerLinks(data)}
-    \\\\ \\vspace{-3pt}
+${headerContactLine(data)}
 \\end{center}
 
 ${subheadingSection("Experience", data.experience)}
