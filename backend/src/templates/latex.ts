@@ -1,4 +1,4 @@
-import type { ResumeData, ResumeEntry, SkillGroup, TemplateId } from "../types/resume.js";
+import { DEFAULT_SECTION_ORDER, type ResumeData, type ResumeEntry, type SectionId, type SkillGroup, type TemplateId } from "../types/resume.js";
 import { escapeLatex, sanitizeLatex } from "../utils/latex.js";
 
 const latexText = (value = "") => escapeLatex(value);
@@ -94,11 +94,48 @@ ${rows}
     : "";
 };
 
+const validSectionIds = new Set<string>(DEFAULT_SECTION_ORDER);
+
+const orderedSectionIds = (order: SectionId[] = []) => [
+  ...order.filter((sectionId, index) => validSectionIds.has(sectionId) && order.indexOf(sectionId) === index),
+  ...DEFAULT_SECTION_ORDER.filter((sectionId) => !order.includes(sectionId))
+];
+
+const resumeSection = (sectionId: SectionId, data: ResumeData) => {
+  switch (sectionId) {
+    case "summary":
+      return summarySection(data.summary);
+    case "experience":
+      return subheadingSection("Experience", data.experience, { hideLocation: true });
+    case "projects":
+      return projectSection("Projects", data.projects);
+    case "education":
+      return subheadingSection("Education", data.education, { showCgpa: true });
+    case "skills":
+      return skillsSection(data.skills);
+    case "achievements":
+      return projectSection("Achievements", data.achievements);
+    case "certifications":
+      return projectSection("Certifications", data.certifications);
+    case "responsibilities":
+      return projectSection("Positions of Responsibility", data.responsibilities);
+    case "publications":
+      return projectSection("Publications", data.publications);
+  }
+};
+
+const resumeSections = (data: ResumeData) =>
+  orderedSectionIds(data.sectionOrder).map((sectionId) => resumeSection(sectionId, data)).filter(Boolean).join("\n\n");
+
 const headerLinks = (data: ResumeData) => {
+  const iconLink = (value: string, icon: string) =>
+    value ? `\\href{${latexText(normalizeUrl(value))}}{${icon}}` : "";
+
   const links = [
-    data.personal.links.github ? `\\hspace{1pt} \\faGithub \\hspace{2pt} \\texttt{${latexText(data.personal.links.github)}}` : "",
-    data.personal.links.linkedin ? `\\hspace{1pt} \\faLinkedin \\hspace{2pt} \\texttt{${latexText(data.personal.links.linkedin)}}` : "",
-    data.personal.links.portfolio ? `\\hspace{1pt} \\faGlobe \\hspace{2pt} \\texttt{${latexText(data.personal.links.portfolio)}}` : ""
+    iconLink(data.personal.links.github, "\\faGithub"),
+    iconLink(data.personal.links.linkedin, "\\faLinkedin"),
+    iconLink(data.personal.links.portfolio, "\\faGlobe"),
+    iconLink(data.personal.links.leetcode, "\\faCode")
   ].filter(Boolean);
 
   const contact = [
@@ -206,23 +243,7 @@ export function generateLatex(data: ResumeData, template: TemplateId) {
 ${headerContactLine(data)}
 \\end{center}
 
-${summarySection(data.summary)}
-
-${subheadingSection("Experience", data.experience, { hideLocation: true })}
-
-${projectSection("Projects", data.projects)}
-
-${subheadingSection("Education", data.education, { showCgpa: true })}
-
-${skillsSection(data.skills)}
-
-${projectSection("Achievements", data.achievements)}
-
-${projectSection("Certifications", data.certifications)}
-
-${projectSection("Positions of Responsibility", data.responsibilities)}
-
-${projectSection("Publications", data.publications)}
+${resumeSections(data)}
 
 \\end{document}`);
 }

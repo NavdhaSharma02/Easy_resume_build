@@ -1,4 +1,4 @@
-import type { Resume, ResumeData } from "../types/resume";
+import { DEFAULT_SECTION_ORDER, type Resume, type ResumeData } from "../types/resume";
 
 export const createId = () => crypto.randomUUID();
 
@@ -14,6 +14,7 @@ export const emptyEntry = () => ({
 
 export const blankResumeData = (): ResumeData => ({
   summary: "",
+  sectionOrder: [...DEFAULT_SECTION_ORDER],
   personal: {
     fullName: "",
     email: "",
@@ -38,6 +39,7 @@ export const blankResumeData = (): ResumeData => ({
 
 const softwareEngineerData: ResumeData = {
   summary: "Software engineer focused on TypeScript, backend systems, and ATS-friendly automation. Experienced in building performant APIs, data-driven dashboards, and production-ready resume tooling.",
+  sectionOrder: [...DEFAULT_SECTION_ORDER],
   personal: {
     fullName: "Aarav Mehta",
     email: "aarav@example.com",

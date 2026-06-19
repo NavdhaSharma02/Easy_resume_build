@@ -5,7 +5,7 @@ import AuthScreen from "./components/AuthScreen.vue";
 import BuilderView from "./components/BuilderView.vue";
 import DashboardView from "./components/DashboardView.vue";
 import { blankResumeData } from "./data/sampleResumes";
-import type { ApiResume, ApiUser, Resume, TemplateId } from "./types/resume";
+import { DEFAULT_SECTION_ORDER, type ApiResume, type ApiUser, type Resume, type SectionId, type TemplateId } from "./types/resume";
 import { apiRequest, tokenStorageKey, userStorageKey } from "./utils/api";
 
 const isDark = ref(false);
@@ -16,6 +16,7 @@ const appError = ref("");
 const isLoading = ref(false);
 
 const activeResume = computed(() => resumes.value.find((resume) => resume.id === activeResumeId.value) ?? null);
+const validSectionIds = new Set<string>(DEFAULT_SECTION_ORDER);
 
 watchEffect(() => {
   document.documentElement.classList.toggle("dark", isDark.value);
@@ -30,6 +31,12 @@ onMounted(() => {
 });
 
 function fromApiResume(resume: ApiResume): Resume {
+  const existingOrder = resume.resumeData.sectionOrder ?? [];
+  const sectionOrder = [
+    ...existingOrder.filter((sectionId): sectionId is SectionId => validSectionIds.has(sectionId)),
+    ...DEFAULT_SECTION_ORDER.filter((sectionId) => !existingOrder.includes(sectionId))
+  ];
+
   return {
     id: resume.id,
     title: resume.title,
@@ -37,7 +44,7 @@ function fromApiResume(resume: ApiResume): Resume {
     latexContent: resume.latexContent,
     updatedAt: resume.updatedAt,
     atsScore: resume.atsReports?.[0]?.score ?? 0,
-    data: { ...resume.resumeData, summary: resume.resumeData.summary ?? "" }
+    data: { ...resume.resumeData, summary: resume.resumeData.summary ?? "", sectionOrder }
   };
 }
 

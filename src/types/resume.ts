@@ -1,5 +1,19 @@
 export type TemplateId = "classic" | "modern" | "compact";
 
+export const DEFAULT_SECTION_ORDER = [
+  "summary",
+  "experience",
+  "projects",
+  "education",
+  "skills",
+  "achievements",
+  "certifications",
+  "responsibilities",
+  "publications"
+] as const;
+
+export type SectionId = typeof DEFAULT_SECTION_ORDER[number];
+
 export type ResumeEntry = {
   id: string;
   title: string;
@@ -18,6 +32,7 @@ export type SkillGroup = {
 
 export type ResumeData = {
   summary: string;
+  sectionOrder?: SectionId[];
   personal: {
     fullName: string;
     email: string;

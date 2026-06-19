@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { ArrowLeft, Download, FileCode2, FileText, Save, Wand2 } from "lucide-vue-next";
-import type { AtsReport, Resume, TemplateId } from "../types/resume";
+import { ArrowDown, ArrowLeft, ArrowUp, Download, FileCode2, FileText, Save, Wand2 } from "lucide-vue-next";
+import { DEFAULT_SECTION_ORDER, type AtsReport, type Resume, type SectionId, type TemplateId } from "../types/resume";
 import { analyzeResume } from "../utils/ats";
 import { API_URL, apiUrl } from "../utils/api";
 import { generateLatex } from "../utils/latex";
@@ -24,8 +24,30 @@ const report = ref<AtsReport>(analyzeResume(props.resume.data, jobDescription.va
 const isGeneratingPdf = ref(false);
 const pdfError = ref("");
 const pdfPreviewUrl = ref("");
+const sectionLabels: Record<SectionId, string> = {
+  summary: "Summary",
+  experience: "Experience",
+  projects: "Projects",
+  education: "Education",
+  skills: "Skills",
+  achievements: "Achievements",
+  certifications: "Certifications",
+  responsibilities: "Positions of Responsibility",
+  publications: "Publications"
+};
+const validSectionIds = new Set<string>(DEFAULT_SECTION_ORDER);
+
+function normalizeSectionOrder(order: SectionId[] = []) {
+  return [
+    ...order.filter((sectionId, index) => validSectionIds.has(sectionId) && order.indexOf(sectionId) === index),
+    ...DEFAULT_SECTION_ORDER.filter((sectionId) => !order.includes(sectionId))
+  ];
+}
+
+props.resume.data.sectionOrder = normalizeSectionOrder(props.resume.data.sectionOrder);
 
 const latex = computed(() => generateLatex(props.resume.data, props.resume.template));
+const orderedSections = computed(() => props.resume.data.sectionOrder ?? DEFAULT_SECTION_ORDER);
 
 function saveResume() {
   props.resume.updatedAt = new Date().toISOString();
@@ -88,6 +110,16 @@ function downloadPdf() {
   link.download = `${props.resume.title || "resume"}.pdf`;
   link.click();
 }
+
+function moveSection(index: number, direction: -1 | 1) {
+  const order = props.resume.data.sectionOrder ?? DEFAULT_SECTION_ORDER;
+  const next = index + direction;
+  if (next < 0 || next >= order.length) return;
+  const reordered = [...order];
+  const [sectionId] = reordered.splice(index, 1);
+  reordered.splice(next, 0, sectionId);
+  props.resume.data.sectionOrder = reordered;
+}
 </script>
 
 <template>
@@ -143,22 +175,39 @@ function downloadPdf() {
           </div>
         </section>
 
-        <section class="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-          <h2 class="mb-3 font-semibold">Summary</h2>
-          <textarea v-model="resume.data.summary" class="min-h-28" placeholder="Brief professional summary" />
-        </section>
-
-        <EntrySection v-model="resume.data.education" title="Education" title-label="Degree" show-cgpa />
-        <EntrySection v-model="resume.data.experience" title="Experience" title-label="Job role" hide-location />
-        <EntrySection v-model="resume.data.projects" title="Projects" organization-label="GitHub link" location-label="Live site URL" dates-label="Tech used" />
-        <EntrySection v-model="resume.data.achievements" title="Achievements" />
-        <EntrySection v-model="resume.data.certifications" title="Certifications" />
-        <EntrySection v-model="resume.data.responsibilities" title="Positions of Responsibility" />
-        <EntrySection v-model="resume.data.publications" title="Publications" />
+        <template v-for="sectionId in orderedSections" :key="sectionId">
+          <section v-if="sectionId === 'summary'" class="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <h2 class="mb-3 font-semibold">Summary</h2>
+            <textarea v-model="resume.data.summary" class="min-h-28" placeholder="Brief professional summary" />
+          </section>
+          <EntrySection v-else-if="sectionId === 'education'" v-model="resume.data.education" title="Education" title-label="Degree" show-cgpa />
+          <EntrySection v-else-if="sectionId === 'experience'" v-model="resume.data.experience" title="Experience" title-label="Job role" hide-location />
+          <EntrySection v-else-if="sectionId === 'projects'" v-model="resume.data.projects" title="Projects" organization-label="GitHub link" location-label="Live site URL" dates-label="Tech used" />
+          <SkillsEditor v-else-if="sectionId === 'skills'" v-model="resume.data.skills" />
+          <EntrySection v-else-if="sectionId === 'achievements'" v-model="resume.data.achievements" title="Achievements" />
+          <EntrySection v-else-if="sectionId === 'certifications'" v-model="resume.data.certifications" title="Certifications" />
+          <EntrySection v-else-if="sectionId === 'responsibilities'" v-model="resume.data.responsibilities" title="Positions of Responsibility" />
+          <EntrySection v-else-if="sectionId === 'publications'" v-model="resume.data.publications" title="Publications" />
+        </template>
       </div>
 
       <aside class="space-y-5">
-        <SkillsEditor v-model="resume.data.skills" />
+        <section class="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <h2 class="mb-3 font-semibold">Section Order</h2>
+          <div class="space-y-2">
+            <div v-for="(sectionId, index) in orderedSections" :key="sectionId" class="flex items-center justify-between gap-2 rounded-md border border-slate-200 px-3 py-2 dark:border-slate-800">
+              <span class="text-sm">{{ sectionLabels[sectionId] }}</span>
+              <div class="flex gap-1">
+                <button type="button" class="grid h-8 w-8 place-items-center rounded-md border border-slate-300 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700" :disabled="index === 0" :aria-label="`Move ${sectionLabels[sectionId]} up`" @click="moveSection(index, -1)">
+                  <ArrowUp :size="15" />
+                </button>
+                <button type="button" class="grid h-8 w-8 place-items-center rounded-md border border-slate-300 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700" :disabled="index === orderedSections.length - 1" :aria-label="`Move ${sectionLabels[sectionId]} down`" @click="moveSection(index, 1)">
+                  <ArrowDown :size="15" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
         <section class="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
           <h2 class="mb-3 font-semibold">Links</h2>
           <div class="space-y-2">

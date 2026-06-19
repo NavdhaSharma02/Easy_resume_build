@@ -1,20 +1,24 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import { Plus, Trash2 } from "lucide-vue-next";
 import type { SkillGroup } from "../types/resume";
 import { createId } from "../data/sampleResumes";
 
 const groups = defineModel<SkillGroup[]>({ required: true });
+const skillDrafts = ref<Record<string, string>>({});
 
 function addGroup() {
   groups.value.push({ id: createId(), category: "", items: [] });
 }
 
 function removeGroup(index: number) {
+  delete skillDrafts.value[groups.value[index]?.id ?? ""];
   groups.value.splice(index, 1);
 }
 
-const skillsToText = (group: SkillGroup) => group.items.join(", ");
+const skillsToText = (group: SkillGroup) => skillDrafts.value[group.id] ?? group.items.join(", ");
 const updateSkills = (group: SkillGroup, value: string) => {
+  skillDrafts.value[group.id] = value;
   group.items = value.split(",").map((item) => item.trim()).filter(Boolean);
 };
 </script>

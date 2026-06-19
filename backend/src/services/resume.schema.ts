@@ -1,5 +1,17 @@
 import { z } from "zod";
 
+const sectionIdSchema = z.enum([
+  "summary",
+  "experience",
+  "projects",
+  "education",
+  "skills",
+  "achievements",
+  "certifications",
+  "responsibilities",
+  "publications"
+]);
+
 const entrySchema = z.object({
   id: z.string().min(1),
   title: z.string().default(""),
@@ -12,6 +24,7 @@ const entrySchema = z.object({
 
 export const resumeDataSchema = z.object({
   summary: z.string().default(""),
+  sectionOrder: z.array(sectionIdSchema).optional(),
   personal: z.object({
     fullName: z.string().default(""),
     email: z.string().default(""),

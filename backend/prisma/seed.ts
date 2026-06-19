@@ -1,12 +1,13 @@
 import { PrismaClient } from "@prisma/client";
 import { hashPassword } from "../src/lib/auth.js";
 import { generateLatex } from "../src/templates/latex.js";
-import type { ResumeData, TemplateId } from "../src/types/resume.js";
+import { DEFAULT_SECTION_ORDER, type ResumeData, type TemplateId } from "../src/types/resume.js";
 
 const prisma = new PrismaClient();
 
 const softwareEngineerData: ResumeData = {
   summary: "Software engineer focused on TypeScript, backend systems, and ATS-friendly automation. Experienced in building performant APIs, data-driven dashboards, and production-ready resume tooling.",
+  sectionOrder: [...DEFAULT_SECTION_ORDER],
   personal: {
     fullName: "Aarav Mehta",
     email: "aarav@example.com",
