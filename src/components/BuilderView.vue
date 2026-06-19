@@ -148,7 +148,7 @@ function downloadPdf() {
           <textarea v-model="resume.data.summary" class="min-h-28" placeholder="Brief professional summary" />
         </section>
 
-        <EntrySection v-model="resume.data.education" title="Education" show-cgpa />
+        <EntrySection v-model="resume.data.education" title="Education" title-label="Degree" show-cgpa />
         <EntrySection v-model="resume.data.experience" title="Experience" location-label="Job role" />
         <EntrySection v-model="resume.data.projects" title="Projects" organization-label="GitHub link" location-label="Live site URL" />
         <EntrySection v-model="resume.data.achievements" title="Achievements" />

@@ -23,7 +23,7 @@ ${items.filter(Boolean).map((item) => `        \\resumeItem{${latexText(item)}}`
 const subheading = (item: ResumeEntry, options: { showCgpa?: boolean } = {}) => {
   const title = item.organization || item.title || "Organization";
   const role = item.title || item.organization || "Role";
-  const locationParts = [item.location, options.showCgpa && item.cgpa ? `GPA/CGPA: ${item.cgpa}` : ""].filter(Boolean);
+  const locationParts = [item.location, options.showCgpa && item.cgpa ? `CGPA: ${item.cgpa}` : ""].filter(Boolean);
   return `    \\resumeSubheading
       {${latexText(title)}}{${latexText(item.dates)}}
       {${latexText(role)}}{${latexText(locationParts.join(" | "))}}

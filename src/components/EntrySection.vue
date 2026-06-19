@@ -68,8 +68,8 @@ const updateBullets = (entry: ResumeEntry, value: string) => {
           <input v-model="entry.location" :placeholder="locationLabel ?? 'Location'" />
           <input v-model="entry.dates" :placeholder="datesLabel ?? 'Dates'" />
           <div v-if="showCgpa" class="md:col-span-2">
-            <label class="mb-1 block text-xs font-medium text-slate-500">GPA / CGPA</label>
-            <input v-model="entry.cgpa" placeholder="e.g. 8.7/10 or 3.8/4.0" />
+            <label class="mb-1 block text-xs font-medium text-slate-500">CGPA</label>
+            <input v-model="entry.cgpa" placeholder="e.g. 8.7/10" />
           </div>
         </div>
         <textarea class="mt-2" :value="bulletsToText(entry)" placeholder="Bullets, one per line" @input="updateBullets(entry, ($event.target as HTMLTextAreaElement).value)" />
