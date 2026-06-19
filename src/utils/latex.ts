@@ -37,7 +37,7 @@ ${projectLinks(item)}
 ${resumeItems(item.bullets)}`;
 
 const projectTechStack = (item: ResumeEntry) =>
-  item.dates ? `      \\small{\\textit{${latexText(item.dates)}}}\\vspace{-4pt}` : "";
+  item.dates ? `      \\small{\\textit{${latexText(item.dates)}}}\\\\[-1pt]` : "";
 
 const normalizeUrl = (value: string) => /^https?:\/\//i.test(value) ? value : `https://${value}`;
 
@@ -50,7 +50,7 @@ const projectLinks = (item: ResumeEntry) => {
     projectLink(item.location, "Live")
   ].filter(Boolean);
 
-  return links.length ? `      \\small{${links.join(" $|$ ")}}\\vspace{-4pt}` : "";
+  return links.length ? `      \\small{${links.join(" $|$ ")}}\\vspace{-3pt}` : "";
 };
 
 const section = (title: string, body: string) =>
