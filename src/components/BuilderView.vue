@@ -209,27 +209,6 @@ function stopSectionPointerDrag() {
     <div v-if="activeTab === 'form'" class="grid gap-5 lg:grid-cols-[1fr_360px]">
       <div class="space-y-5">
         <section class="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-          <h2 class="mb-3 font-semibold">Section Order</h2>
-          <div class="grid gap-2 md:grid-cols-2">
-            <div
-              v-for="(sectionId, index) in orderedSections"
-              :key="sectionId"
-              :data-section-order-index="index"
-              draggable="true"
-              class="cursor-grab touch-none select-none rounded-md border border-slate-200 px-3 py-2 text-sm active:cursor-grabbing dark:border-slate-800"
-              :class="draggingSectionIndex === index && 'border-moss bg-teal-50/60 dark:bg-teal-950/20'"
-              @pointerdown="startSectionPointerDrag(index, $event)"
-              @dragstart="startSectionDrag(index, $event)"
-              @dragover="dragOverSection(index, $event)"
-              @drop="dropSection(index, $event)"
-              @dragend="stopSectionDrag"
-            >
-              {{ sectionLabels[sectionId] }}
-            </div>
-          </div>
-        </section>
-
-        <section class="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
           <h2 class="mb-3 font-semibold">Personal Information</h2>
           <div class="grid gap-3 md:grid-cols-2">
             <input v-model="resume.data.personal.fullName" placeholder="Full name" />
@@ -256,6 +235,26 @@ function stopSectionPointerDrag() {
       </div>
 
       <aside class="space-y-5">
+        <section class="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <h2 class="mb-3 font-semibold">Section Order</h2>
+          <div class="space-y-2">
+            <div
+              v-for="(sectionId, index) in orderedSections"
+              :key="sectionId"
+              :data-section-order-index="index"
+              draggable="true"
+              class="cursor-grab touch-none select-none rounded-md border border-slate-200 px-3 py-2 text-sm active:cursor-grabbing dark:border-slate-800"
+              :class="draggingSectionIndex === index && 'border-moss bg-teal-50/60 dark:bg-teal-950/20'"
+              @pointerdown="startSectionPointerDrag(index, $event)"
+              @dragstart="startSectionDrag(index, $event)"
+              @dragover="dragOverSection(index, $event)"
+              @drop="dropSection(index, $event)"
+              @dragend="stopSectionDrag"
+            >
+              {{ sectionLabels[sectionId] }}
+            </div>
+          </div>
+        </section>
         <section class="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
           <h2 class="mb-3 font-semibold">Links</h2>
           <div class="space-y-2">
