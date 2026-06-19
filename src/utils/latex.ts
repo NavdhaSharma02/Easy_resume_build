@@ -150,7 +150,7 @@ const headerLinks = (data: ResumeData) => {
 
   const contact = [
     data.personal.phone ? `\\faPhone* \\texttt{${latexText(data.personal.phone)}}` : "",
-    data.personal.email ? `\\faEnvelope \\hspace{2pt} \\texttt{${latexText(data.personal.email)}}` : "",
+    data.personal.email ? `\\href{mailto:${latexText(data.personal.email)}}{\\faEnvelope}` : "",
     ...links,
     data.personal.location ? `\\faMapMarker* \\hspace{2pt}\\texttt{${latexText(data.personal.location)}}` : ""
   ].filter(Boolean);
