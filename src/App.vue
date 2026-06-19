@@ -14,6 +14,7 @@ const resumes = ref<Resume[]>([]);
 const activeResumeId = ref<string | null>(null);
 const appError = ref("");
 const isLoading = ref(false);
+const isImporting = ref(false);
 let autosaveTimer: ReturnType<typeof window.setTimeout> | undefined;
 
 const activeResume = computed(() => resumes.value.find((resume) => resume.id === activeResumeId.value) ?? null);
@@ -125,6 +126,26 @@ async function createResume() {
   activeResumeId.value = resume.id;
 }
 
+async function importResume(file: File) {
+  appError.value = "";
+  isImporting.value = true;
+  try {
+    const formData = new FormData();
+    formData.append("resume", file);
+    const created = await apiRequest<ApiResume>("/api/resumes/import", {
+      method: "POST",
+      body: formData
+    });
+    const resume = fromApiResume(created);
+    resumes.value.unshift(resume);
+    activeResumeId.value = resume.id;
+  } catch (error) {
+    appError.value = error instanceof Error ? error.message : "Could not import resume";
+  } finally {
+    isImporting.value = false;
+  }
+}
+
 async function duplicateResume(id: string) {
   const copy = await apiRequest<ApiResume>(`/api/resumes/${id}/duplicate`, { method: "POST" });
   resumes.value.unshift(fromApiResume(copy));
@@ -172,8 +193,8 @@ function logout() {
       </div>
     </div>
     <AuthScreen v-if="!user" @authenticated="authenticate" />
-    <main v-else-if="isLoading" class="mx-auto max-w-7xl px-4 py-6 text-sm text-slate-500">Loading resumes...</main>
+    <main v-else-if="isLoading || isImporting" class="mx-auto max-w-7xl px-4 py-6 text-sm text-slate-500">{{ isImporting ? "Importing resume..." : "Loading resumes..." }}</main>
     <BuilderView v-else-if="activeResume" :resume="activeResume" @back="activeResumeId = null" />
-    <DashboardView v-else :resumes="resumes" @create="createResume" @edit="activeResumeId = $event" @duplicate="duplicateResume" @delete="deleteResume" />
+    <DashboardView v-else :resumes="resumes" @create="createResume" @import="importResume" @edit="activeResumeId = $event" @duplicate="duplicateResume" @delete="deleteResume" />
   </AppShell>
 </template>

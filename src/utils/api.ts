@@ -7,10 +7,11 @@ export const userStorageKey = "easy_resume_user";
 
 export async function apiRequest<T>(path: string, options: RequestInit = {}) {
   const token = localStorage.getItem(tokenStorageKey);
+  const isFormData = options.body instanceof FormData;
   const response = await fetch(apiUrl(path), {
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers
     }

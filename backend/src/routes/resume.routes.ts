@@ -1,8 +1,10 @@
 import { Router } from "express";
+import multer from "multer";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth, type AuthedRequest } from "../middleware/auth.js";
 import { validate } from "../middleware/validate.js";
+import { extractResumeText, parseResumeText } from "../services/import.service.js";
 import { createResumeSchema, updateResumeSchema } from "../services/resume.schema.js";
 import { compileLatexToPdf } from "../services/pdf.service.js";
 import { generateLatex } from "../templates/latex.js";
@@ -13,6 +15,10 @@ const router = Router();
 const idSchema = z.object({ id: z.string().min(1) });
 const routeId = (req: AuthedRequest) => z.string().parse(req.params.id);
 const toPrismaTemplate = (template: TemplateId) => template.toUpperCase() as "CLASSIC" | "MODERN" | "COMPACT";
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 8 * 1024 * 1024 }
+});
 
 router.use(requireAuth);
 
@@ -41,6 +47,30 @@ router.post("/", validate(createResumeSchema), async (req: AuthedRequest, res) =
     }
   });
   res.status(201).json(resume);
+});
+
+router.post("/import", upload.single("resume"), async (req: AuthedRequest, res) => {
+  if (!req.file) return res.status(400).json({ message: "Resume file is required" });
+
+  try {
+    const text = await extractResumeText(req.file);
+    const resumeData = parseResumeText(text);
+    const title = resumeData.personal.fullName ? `${resumeData.personal.fullName} Resume` : "Imported Resume";
+    const latexContent = generateLatex(resumeData, "classic");
+    const resume = await prisma.resume.create({
+      data: {
+        userId: req.user!.userId,
+        title,
+        template: "CLASSIC",
+        resumeData,
+        latexContent
+      }
+    });
+
+    res.status(201).json(resume);
+  } catch (error) {
+    res.status(422).json({ message: error instanceof Error ? error.message : "Could not import resume" });
+  }
 });
 
 router.get("/:id", validate(idSchema, "params"), async (req: AuthedRequest, res) => {

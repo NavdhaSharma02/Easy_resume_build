@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Copy, Edit3, Plus, Search, Trash2 } from "lucide-vue-next";
+import { Copy, Edit3, Plus, Search, Trash2, Upload } from "lucide-vue-next";
 import type { Resume } from "../types/resume";
 
 const props = defineProps<{
@@ -9,16 +9,25 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   create: [];
+  import: [file: File];
   edit: [id: string];
   duplicate: [id: string];
   delete: [id: string];
 }>();
 
 const search = ref("");
+const fileInput = ref<HTMLInputElement | null>(null);
 
 const filtered = computed(() =>
   props.resumes.filter((resume) => resume.title.toLowerCase().includes(search.value.toLowerCase()))
 );
+
+function uploadResume(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (file) emit("import", file);
+  input.value = "";
+}
 </script>
 
 <template>
@@ -28,10 +37,17 @@ const filtered = computed(() =>
         <h1 class="text-2xl font-semibold">Resumes</h1>
         <p class="text-sm text-slate-500">Create, search, edit, duplicate, and analyze tailored versions.</p>
       </div>
-      <button class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-moss px-3 py-2 text-sm font-medium text-white hover:bg-teal-800 sm:w-auto" @click="emit('create')">
-        <Plus :size="16" />
-        Create resume
-      </button>
+      <div class="grid gap-2 sm:flex">
+        <input ref="fileInput" class="hidden" type="file" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" @change="uploadResume" />
+        <button class="inline-flex w-full items-center justify-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm font-medium dark:border-slate-700 sm:w-auto" @click="fileInput?.click()">
+          <Upload :size="16" />
+          Upload resume
+        </button>
+        <button class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-moss px-3 py-2 text-sm font-medium text-white hover:bg-teal-800 sm:w-auto" @click="emit('create')">
+          <Plus :size="16" />
+          Create resume
+        </button>
+      </div>
     </div>
 
     <div class="mb-5 flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 dark:border-slate-800 dark:bg-slate-900">
