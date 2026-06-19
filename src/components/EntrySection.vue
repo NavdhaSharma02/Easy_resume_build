@@ -97,7 +97,7 @@ function stopBulletDrag() {
           <input v-model="entry.title" :placeholder="titleLabel ?? 'Title'" />
           <input v-model="entry.organization" :placeholder="organizationLabel ?? 'Organization'" />
           <input v-if="!hideLocation" v-model="entry.location" :placeholder="locationLabel ?? 'Location'" />
-          <input v-model="entry.dates" :placeholder="datesLabel ?? 'Dates'" />
+          <input v-model="entry.dates" :placeholder="datesLabel ?? 'Dates, e.g. Jan 2024 - Present'" />
           <div v-if="showCgpa" class="md:col-span-2">
             <label class="mb-1 block text-xs font-medium text-slate-500">CGPA</label>
             <input v-model="entry.cgpa" placeholder="e.g. 8.7/10" />
