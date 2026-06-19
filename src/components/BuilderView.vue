@@ -170,45 +170,45 @@ function stopSectionPointerDrag() {
 </script>
 
 <template>
-  <main class="mx-auto max-w-7xl px-4 py-6">
+  <main class="mx-auto max-w-7xl px-3 py-5 sm:px-4 sm:py-6">
     <div class="mb-5 flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
       <div>
         <button class="mb-2 inline-flex items-center gap-2 text-sm text-moss" @click="emit('back')">
           <ArrowLeft :size="15" />
           Back to dashboard
         </button>
-        <input v-model="resume.title" class="block max-w-xl border-0 bg-transparent p-0 text-2xl font-semibold focus:ring-0" />
+        <input v-model="resume.title" class="block max-w-full border-0 bg-transparent p-0 text-xl font-semibold focus:ring-0 sm:max-w-xl sm:text-2xl" />
       </div>
-      <div class="flex flex-wrap gap-2">
-        <select v-model="resume.template">
+      <div class="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap">
+        <select v-model="resume.template" class="col-span-2 sm:col-span-1 sm:w-auto">
           <option value="classic">Classic</option>
           <option value="modern">Modern</option>
           <option value="compact">Compact</option>
         </select>
-        <button class="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700" @click="activeTab = 'latex'">
+        <button class="inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700" @click="activeTab = 'latex'">
           <FileCode2 :size="16" />
           LaTeX
         </button>
-        <button class="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700" @click="downloadTex">
+        <button class="inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700" @click="downloadTex">
           <Download :size="16" />
           .tex
         </button>
-        <button class="inline-flex items-center gap-2 rounded-md bg-moss px-3 py-2 text-sm font-medium text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60" :disabled="isGeneratingPdf" @click="activeTab = 'pdf'">
+        <button class="col-span-2 inline-flex items-center justify-center gap-2 rounded-md bg-moss px-3 py-2 text-sm font-medium text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-1" :disabled="isGeneratingPdf" @click="activeTab = 'pdf'">
           <FileText :size="16" />
           PDF
         </button>
       </div>
     </div>
 
-    <div class="mb-5 flex gap-2 border-b border-slate-200 dark:border-slate-800">
-      <button v-for="tab in ['form', 'latex', 'pdf', 'analytics']" :key="tab" class="px-3 py-2 text-sm capitalize" :class="activeTab === tab ? 'border-b-2 border-moss text-moss' : 'text-slate-500'" @click="activeTab = tab as 'form' | 'latex' | 'pdf' | 'analytics'">
+    <div class="mb-5 flex gap-2 overflow-x-auto border-b border-slate-200 dark:border-slate-800">
+      <button v-for="tab in ['form', 'latex', 'pdf', 'analytics']" :key="tab" class="shrink-0 px-3 py-2 text-sm capitalize" :class="activeTab === tab ? 'border-b-2 border-moss text-moss' : 'text-slate-500'" @click="activeTab = tab as 'form' | 'latex' | 'pdf' | 'analytics'">
         {{ tab }}
       </button>
     </div>
 
     <div v-if="activeTab === 'form'" class="grid gap-5 lg:grid-cols-[1fr_360px]">
       <div class="space-y-5">
-        <section class="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+        <section class="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 sm:p-4">
           <h2 class="mb-3 font-semibold">Personal Information</h2>
           <div class="grid gap-3 md:grid-cols-2">
             <input v-model="resume.data.personal.fullName" placeholder="Full name" />
@@ -219,7 +219,7 @@ function stopSectionPointerDrag() {
         </section>
 
         <template v-for="sectionId in orderedSections" :key="sectionId">
-          <section v-if="sectionId === 'summary'" class="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <section v-if="sectionId === 'summary'" class="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 sm:p-4">
             <h2 class="mb-3 font-semibold">Summary</h2>
             <textarea v-model="resume.data.summary" class="min-h-28" placeholder="Brief professional summary" />
           </section>
@@ -234,8 +234,8 @@ function stopSectionPointerDrag() {
         </template>
       </div>
 
-      <aside class="space-y-5">
-        <section class="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+      <aside class="order-first space-y-5 lg:order-none">
+        <section class="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 sm:p-4">
           <h2 class="mb-3 font-semibold">Section Order</h2>
           <div class="space-y-2">
             <div
@@ -255,7 +255,7 @@ function stopSectionPointerDrag() {
             </div>
           </div>
         </section>
-        <section class="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+        <section class="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 sm:p-4">
           <h2 class="mb-3 font-semibold">Links</h2>
           <div class="space-y-2">
             <input v-model="resume.data.personal.links.github" placeholder="GitHub" />
@@ -267,7 +267,7 @@ function stopSectionPointerDrag() {
       </aside>
     </div>
 
-    <section v-else-if="activeTab === 'latex'" class="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+    <section v-else-if="activeTab === 'latex'" class="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 sm:p-4">
       <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
         <h2 class="font-semibold">Generated LaTeX</h2>
         <button class="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700" @click="downloadTex">
@@ -275,11 +275,11 @@ function stopSectionPointerDrag() {
           Download .tex
         </button>
       </div>
-      <textarea class="min-h-[620px] font-mono text-xs leading-5" :value="latex" readonly />
+      <textarea class="min-h-[520px] font-mono text-xs leading-5 sm:min-h-[620px]" :value="latex" readonly />
     </section>
 
     <section v-else-if="activeTab === 'pdf'" class="grid gap-4 lg:grid-cols-[360px_1fr]">
-      <div class="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+      <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 sm:p-4">
         <h2 class="mb-2 font-semibold">PDF</h2>
         <p class="mb-4 text-sm text-slate-500">Compile the current resume into a PDF and preview it here.</p>
         <button class="mb-3 inline-flex w-full items-center justify-center gap-2 rounded-md bg-moss px-3 py-2 text-sm font-medium text-white hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60" :disabled="isGeneratingPdf" @click="generatePdf">
@@ -295,13 +295,13 @@ function stopSectionPointerDrag() {
         </div>
       </div>
 
-      <div class="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+      <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 sm:p-4">
         <h2 class="mb-2 font-semibold">PDF Preview</h2>
         <iframe
           v-if="pdfPreviewUrl"
           :src="pdfPreviewUrl"
           title="Resume PDF preview"
-          class="h-[620px] w-full rounded-md border border-slate-300 bg-white dark:border-slate-700"
+          class="h-[70vh] w-full rounded-md border border-slate-300 bg-white dark:border-slate-700 sm:h-[620px]"
         />
         <div v-else class="grid aspect-[8.5/11] place-items-center rounded-md border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-950">
           Click Generate PDF to compile and download the current LaTeX.

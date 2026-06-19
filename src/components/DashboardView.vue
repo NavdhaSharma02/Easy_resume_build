@@ -22,13 +22,13 @@ const filtered = computed(() =>
 </script>
 
 <template>
-  <main class="mx-auto max-w-7xl px-4 py-6">
+  <main class="mx-auto max-w-7xl px-3 py-5 sm:px-4 sm:py-6">
     <div class="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
       <div>
         <h1 class="text-2xl font-semibold">Resumes</h1>
         <p class="text-sm text-slate-500">Create, search, edit, duplicate, and analyze tailored versions.</p>
       </div>
-      <button class="inline-flex items-center gap-2 rounded-md bg-moss px-3 py-2 text-sm font-medium text-white hover:bg-teal-800" @click="emit('create')">
+      <button class="inline-flex w-full items-center justify-center gap-2 rounded-md bg-moss px-3 py-2 text-sm font-medium text-white hover:bg-teal-800 sm:w-auto" @click="emit('create')">
         <Plus :size="16" />
         Create resume
       </button>
@@ -51,16 +51,16 @@ const filtered = computed(() =>
           </span>
         </div>
         <p class="mb-4 text-sm text-slate-500">Last modified {{ new Date(resume.updatedAt).toLocaleDateString() }}</p>
-        <div class="flex flex-wrap gap-2">
-          <button class="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700" @click="emit('edit', resume.id)">
+        <div class="grid gap-2 sm:flex sm:flex-wrap">
+          <button class="inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700" @click="emit('edit', resume.id)">
             <Edit3 :size="15" />
             Edit
           </button>
-          <button class="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700" @click="emit('duplicate', resume.id)">
+          <button class="inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700" @click="emit('duplicate', resume.id)">
             <Copy :size="15" />
             Duplicate
           </button>
-          <button class="inline-flex items-center gap-2 rounded-md bg-rose-600 px-3 py-2 text-sm text-white" @click="emit('delete', resume.id)">
+          <button class="inline-flex items-center justify-center gap-2 rounded-md bg-rose-600 px-3 py-2 text-sm text-white" @click="emit('delete', resume.id)">
             <Trash2 :size="15" />
             Delete
           </button>

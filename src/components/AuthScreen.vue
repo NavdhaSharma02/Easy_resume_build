@@ -22,8 +22,8 @@ function submit() {
 </script>
 
 <template>
-  <main class="grid min-h-[calc(100vh-66px)] place-items-center px-4">
-    <form class="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-soft dark:border-slate-800 dark:bg-slate-900" @submit.prevent="submit">
+  <main class="grid min-h-[calc(100vh-66px)] place-items-center px-3 py-5 sm:px-4">
+    <form class="w-full max-w-md rounded-lg border border-slate-200 bg-white p-4 shadow-soft dark:border-slate-800 dark:bg-slate-900 sm:p-6" @submit.prevent="submit">
       <div class="mb-6 flex items-center gap-3">
         <span class="grid h-11 w-11 place-items-center rounded-md bg-moss text-white">
           <FileText />

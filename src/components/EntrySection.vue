@@ -75,7 +75,7 @@ function stopBulletDrag() {
 </script>
 
 <template>
-  <section class="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+  <section class="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 sm:p-4">
     <div class="mb-3 flex items-center justify-between">
       <h2 class="font-semibold">{{ title }}</h2>
       <button type="button" class="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700" @click="addEntry">
@@ -85,9 +85,9 @@ function stopBulletDrag() {
     </div>
 
     <div class="space-y-4">
-      <div v-for="(entry, index) in entries" :key="entry.id" class="rounded-md border border-slate-200 p-3 dark:border-slate-800">
+      <div v-for="(entry, index) in entries" :key="entry.id" class="rounded-md border border-slate-200 p-2 dark:border-slate-800 sm:p-3">
         <div class="mb-2 flex justify-end">
-          <button type="button" class="inline-flex items-center gap-1 rounded-md bg-rose-600 px-2 py-1 text-xs text-white" @click="removeEntry(index)">
+          <button type="button" class="inline-flex items-center justify-center gap-1 rounded-md bg-rose-600 px-3 py-2 text-sm text-white sm:px-2 sm:py-1 sm:text-xs" @click="removeEntry(index)">
             <Trash2 :size="13" />
             Remove
           </button>
@@ -105,9 +105,9 @@ function stopBulletDrag() {
         </div>
 
         <div class="mt-3 space-y-2">
-          <div class="flex items-center justify-between gap-2">
+          <div class="flex flex-wrap items-center justify-between gap-2">
             <span class="text-xs font-medium text-slate-500">Bullet points</span>
-            <button type="button" class="inline-flex items-center gap-1 rounded-md border border-slate-300 px-2 py-1 text-xs dark:border-slate-700" @click="addBullet(entry)">
+            <button type="button" class="inline-flex items-center justify-center gap-1 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700 sm:px-2 sm:py-1 sm:text-xs" @click="addBullet(entry)">
               <Plus :size="13" />
               Add bullet
             </button>
@@ -120,15 +120,15 @@ function stopBulletDrag() {
             class="rounded-md border border-slate-200 p-2 dark:border-slate-800"
             :class="draggingBullet?.entryId === entry.id && draggingBullet.index === bulletIndex && 'border-moss bg-teal-50/40 dark:bg-teal-950/20'"
           >
-            <div class="mb-2 flex items-center justify-between gap-2">
+            <div class="mb-2 grid gap-2 sm:flex sm:items-center sm:justify-between">
               <button type="button" class="inline-flex touch-none select-none items-center gap-2 rounded px-1 py-1 text-xs text-slate-500 active:cursor-grabbing" @pointerdown="startBulletDrag(entry, bulletIndex, $event)">
                 <GripVertical :size="13" />
                 Bullet {{ bulletIndex + 1 }}
               </button>
-              <div class="flex gap-2">
+              <div class="grid grid-cols-3 gap-2 sm:flex">
                 <button type="button" class="rounded-md border border-slate-300 px-2 py-1 text-xs dark:border-slate-700" @click="moveBullet(entry, bulletIndex, -1)">Up</button>
                 <button type="button" class="rounded-md border border-slate-300 px-2 py-1 text-xs dark:border-slate-700" @click="moveBullet(entry, bulletIndex, 1)">Down</button>
-                <button type="button" class="inline-flex items-center gap-1 rounded-md bg-rose-600 px-2 py-1 text-xs text-white" @click="removeBullet(entry, bulletIndex)">
+                <button type="button" class="inline-flex items-center justify-center gap-1 rounded-md bg-rose-600 px-2 py-1 text-xs text-white" @click="removeBullet(entry, bulletIndex)">
                   <Trash2 :size="13" />
                   Remove
                 </button>
