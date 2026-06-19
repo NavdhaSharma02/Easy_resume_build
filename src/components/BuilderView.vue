@@ -149,8 +149,8 @@ function downloadPdf() {
         </section>
 
         <EntrySection v-model="resume.data.education" title="Education" title-label="Degree" show-cgpa />
-        <EntrySection v-model="resume.data.experience" title="Experience" location-label="Job role" />
-        <EntrySection v-model="resume.data.projects" title="Projects" organization-label="GitHub link" location-label="Live site URL" />
+        <EntrySection v-model="resume.data.experience" title="Experience" title-label="Job role" hide-location />
+        <EntrySection v-model="resume.data.projects" title="Projects" organization-label="GitHub link" location-label="Live site URL" dates-label="Tech used" />
         <EntrySection v-model="resume.data.achievements" title="Achievements" />
         <EntrySection v-model="resume.data.certifications" title="Certifications" />
         <EntrySection v-model="resume.data.responsibilities" title="Positions of Responsibility" />

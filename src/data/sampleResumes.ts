@@ -66,7 +66,7 @@ const softwareEngineerData: ResumeData = {
       id: createId(),
       title: "Software Engineer Intern",
       organization: "Acme Labs",
-      location: "Backend Engineering",
+      location: "",
       dates: "May 2025 - Aug 2025",
       bullets: [
         "Developed TypeScript services that reduced API response time by 32%",
@@ -80,7 +80,7 @@ const softwareEngineerData: ResumeData = {
       title: "Resume Intelligence Platform",
       organization: "github.com/aarav/resume-intelligence",
       location: "resume-intelligence.aarav.dev",
-      dates: "2026",
+      dates: "Vue, TypeScript, Node.js, Prisma, PostgreSQL",
       bullets: [
         "Designed an ATS scoring engine with keyword extraction and actionable feedback",
         "Automated LaTeX generation for three ATS-friendly resume templates"

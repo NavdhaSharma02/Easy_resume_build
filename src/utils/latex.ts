@@ -20,10 +20,10 @@ ${items.filter(Boolean).map((item) => `        \\resumeItem{${latexText(item)}}`
       \\resumeItemListEnd`
     : "";
 
-const subheading = (item: ResumeEntry, options: { showCgpa?: boolean } = {}) => {
+const subheading = (item: ResumeEntry, options: { showCgpa?: boolean; hideLocation?: boolean } = {}) => {
   const title = item.organization || item.title || "Organization";
   const role = item.title || item.organization || "Role";
-  const locationParts = [item.location, options.showCgpa && item.cgpa ? `CGPA: ${item.cgpa}` : ""].filter(Boolean);
+  const locationParts = [options.hideLocation ? "" : item.location, options.showCgpa && item.cgpa ? `CGPA: ${item.cgpa}` : ""].filter(Boolean);
   return `    \\resumeSubheading
       {${latexText(title)}}{${latexText(item.dates)}}
       {${latexText(role)}}{${latexText(locationParts.join(" | "))}}
@@ -31,9 +31,13 @@ ${resumeItems(item.bullets)}`;
 };
 
 const projectHeading = (item: ResumeEntry) => `      \\resumeProjectHeading
-          {\\textbf{${latexText(item.title || item.organization || "Project")}}}{${latexText(item.dates)}}
+          {\\textbf{${latexText(item.title || item.organization || "Project")}}}{}
+${projectTechStack(item)}
 ${projectLinks(item)}
 ${resumeItems(item.bullets)}`;
+
+const projectTechStack = (item: ResumeEntry) =>
+  item.dates ? `      \\small{\\textit{${latexText(item.dates)}}}\\vspace{-4pt}` : "";
 
 const normalizeUrl = (value: string) => /^https?:\/\//i.test(value) ? value : `https://${value}`;
 
@@ -61,7 +65,7 @@ const summarySection = (summary = "") =>
     ? section("Summary", `  \\small{${latexText(summary)}}`)
     : "";
 
-const subheadingSection = (title: string, entries: ResumeEntry[], options: { showCgpa?: boolean } = {}) =>
+const subheadingSection = (title: string, entries: ResumeEntry[], options: { showCgpa?: boolean; hideLocation?: boolean } = {}) =>
   entries.length
     ? section(
         title,
@@ -213,7 +217,7 @@ ${headerContactLine(data)}
 
 ${summarySection(data.summary)}
 
-${subheadingSection("Experience", data.experience)}
+${subheadingSection("Experience", data.experience, { hideLocation: true })}
 
 ${projectSection("Projects", data.projects)}
 

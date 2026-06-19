@@ -12,6 +12,7 @@ defineProps<{
   organizationLabel?: string;
   locationLabel?: string;
   datesLabel?: string;
+  hideLocation?: boolean;
 }>();
 
 function addEntry() {
@@ -65,7 +66,7 @@ const updateBullets = (entry: ResumeEntry, value: string) => {
         <div class="grid gap-2 md:grid-cols-2">
           <input v-model="entry.title" :placeholder="titleLabel ?? 'Title'" />
           <input v-model="entry.organization" :placeholder="organizationLabel ?? 'Organization'" />
-          <input v-model="entry.location" :placeholder="locationLabel ?? 'Location'" />
+          <input v-if="!hideLocation" v-model="entry.location" :placeholder="locationLabel ?? 'Location'" />
           <input v-model="entry.dates" :placeholder="datesLabel ?? 'Dates'" />
           <div v-if="showCgpa" class="md:col-span-2">
             <label class="mb-1 block text-xs font-medium text-slate-500">CGPA</label>
