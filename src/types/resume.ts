@@ -17,6 +17,7 @@ export type SkillGroup = {
 };
 
 export type ResumeData = {
+  summary: string;
   personal: {
     fullName: string;
     email: string;

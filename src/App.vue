@@ -37,7 +37,7 @@ function fromApiResume(resume: ApiResume): Resume {
     latexContent: resume.latexContent,
     updatedAt: resume.updatedAt,
     atsScore: resume.atsReports?.[0]?.score ?? 0,
-    data: resume.resumeData
+    data: { ...resume.resumeData, summary: resume.resumeData.summary ?? "" }
   };
 }
 

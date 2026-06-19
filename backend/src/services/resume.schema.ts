@@ -11,6 +11,7 @@ const entrySchema = z.object({
 });
 
 export const resumeDataSchema = z.object({
+  summary: z.string().default(""),
   personal: z.object({
     fullName: z.string().default(""),
     email: z.string().default(""),

@@ -143,9 +143,14 @@ function downloadPdf() {
           </div>
         </section>
 
+        <section class="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <h2 class="mb-3 font-semibold">Summary</h2>
+          <textarea v-model="resume.data.summary" class="min-h-28" placeholder="Brief professional summary" />
+        </section>
+
         <EntrySection v-model="resume.data.education" title="Education" show-cgpa />
-        <EntrySection v-model="resume.data.experience" title="Experience" />
-        <EntrySection v-model="resume.data.projects" title="Projects" />
+        <EntrySection v-model="resume.data.experience" title="Experience" location-label="Job role" />
+        <EntrySection v-model="resume.data.projects" title="Projects" organization-label="GitHub link" location-label="Live site URL" />
         <EntrySection v-model="resume.data.achievements" title="Achievements" />
         <EntrySection v-model="resume.data.certifications" title="Certifications" />
         <EntrySection v-model="resume.data.responsibilities" title="Positions of Responsibility" />

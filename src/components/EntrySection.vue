@@ -8,6 +8,10 @@ const entries = defineModel<ResumeEntry[]>({ required: true });
 defineProps<{
   title: string;
   showCgpa?: boolean;
+  titleLabel?: string;
+  organizationLabel?: string;
+  locationLabel?: string;
+  datesLabel?: string;
 }>();
 
 function addEntry() {
@@ -59,10 +63,10 @@ const updateBullets = (entry: ResumeEntry, value: string) => {
         </div>
 
         <div class="grid gap-2 md:grid-cols-2">
-          <input v-model="entry.title" placeholder="Title" />
-          <input v-model="entry.organization" placeholder="Organization" />
-          <input v-model="entry.location" placeholder="Location" />
-          <input v-model="entry.dates" placeholder="Dates" />
+          <input v-model="entry.title" :placeholder="titleLabel ?? 'Title'" />
+          <input v-model="entry.organization" :placeholder="organizationLabel ?? 'Organization'" />
+          <input v-model="entry.location" :placeholder="locationLabel ?? 'Location'" />
+          <input v-model="entry.dates" :placeholder="datesLabel ?? 'Dates'" />
           <div v-if="showCgpa" class="md:col-span-2">
             <label class="mb-1 block text-xs font-medium text-slate-500">GPA / CGPA</label>
             <input v-model="entry.cgpa" placeholder="e.g. 8.7/10 or 3.8/4.0" />

@@ -6,6 +6,7 @@ import type { ResumeData, TemplateId } from "../src/types/resume.js";
 const prisma = new PrismaClient();
 
 const softwareEngineerData: ResumeData = {
+  summary: "Software engineer focused on TypeScript, backend systems, and ATS-friendly automation. Experienced in building performant APIs, data-driven dashboards, and production-ready resume tooling.",
   personal: {
     fullName: "Aarav Mehta",
     email: "aarav@example.com",
@@ -34,7 +35,7 @@ const softwareEngineerData: ResumeData = {
       id: "exp-1",
       title: "Software Engineer Intern",
       organization: "Acme Labs",
-      location: "Remote",
+      location: "Backend Engineering",
       dates: "May 2025 - Aug 2025",
       bullets: ["Developed TypeScript services that reduced API response time by 32%", "Implemented PostgreSQL indexes and improved dashboard load time by 41%"]
     }
@@ -43,8 +44,8 @@ const softwareEngineerData: ResumeData = {
     {
       id: "proj-1",
       title: "Resume Intelligence Platform",
-      organization: "Personal Project",
-      location: "",
+      organization: "github.com/aarav/resume-intelligence",
+      location: "resume-intelligence.aarav.dev",
       dates: "2026",
       bullets: ["Designed an ATS scoring engine with keyword extraction and actionable feedback", "Automated LaTeX generation for three ATS-friendly resume templates"]
     }

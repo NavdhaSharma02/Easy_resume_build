@@ -13,6 +13,7 @@ export const emptyEntry = () => ({
 });
 
 export const blankResumeData = (): ResumeData => ({
+  summary: "",
   personal: {
     fullName: "",
     email: "",
@@ -36,6 +37,7 @@ export const blankResumeData = (): ResumeData => ({
 });
 
 const softwareEngineerData: ResumeData = {
+  summary: "Software engineer focused on TypeScript, backend systems, and ATS-friendly automation. Experienced in building performant APIs, data-driven dashboards, and production-ready resume tooling.",
   personal: {
     fullName: "Aarav Mehta",
     email: "aarav@example.com",
@@ -64,7 +66,7 @@ const softwareEngineerData: ResumeData = {
       id: createId(),
       title: "Software Engineer Intern",
       organization: "Acme Labs",
-      location: "Remote",
+      location: "Backend Engineering",
       dates: "May 2025 - Aug 2025",
       bullets: [
         "Developed TypeScript services that reduced API response time by 32%",
@@ -76,8 +78,8 @@ const softwareEngineerData: ResumeData = {
     {
       id: createId(),
       title: "Resume Intelligence Platform",
-      organization: "Personal Project",
-      location: "",
+      organization: "github.com/aarav/resume-intelligence",
+      location: "resume-intelligence.aarav.dev",
       dates: "2026",
       bullets: [
         "Designed an ATS scoring engine with keyword extraction and actionable feedback",

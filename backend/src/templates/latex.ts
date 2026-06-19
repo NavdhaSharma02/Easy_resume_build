@@ -22,13 +22,33 @@ ${resumeItems(item.bullets)}`;
 
 const projectHeading = (item: ResumeEntry) => `      \\resumeProjectHeading
           {\\textbf{${latexText(item.title || item.organization || "Project")}}}{${latexText(item.dates)}}
+${projectLinks(item)}
 ${resumeItems(item.bullets)}`;
+
+const normalizeUrl = (value: string) => /^https?:\/\//i.test(value) ? value : `https://${value}`;
+
+const projectLink = (value: string, label: string) =>
+  value ? `\\href{${latexText(normalizeUrl(value))}}{\\texttt{${latexText(label)}}}` : "";
+
+const projectLinks = (item: ResumeEntry) => {
+  const links = [
+    projectLink(item.organization, "GitHub"),
+    projectLink(item.location, "Live")
+  ].filter(Boolean);
+
+  return links.length ? `      \\small{${links.join(" $|$ ")}}\\vspace{-4pt}` : "";
+};
 
 const section = (title: string, body: string) =>
   body.trim()
     ? `%-----------${title.toUpperCase()}-----------
 \\section{${latexText(title.toUpperCase())}}
 ${body}`
+    : "";
+
+const summarySection = (summary = "") =>
+  summary.trim()
+    ? section("Summary", `  \\small{${latexText(summary)}}`)
     : "";
 
 const subheadingSection = (title: string, entries: ResumeEntry[], options: { showCgpa?: boolean } = {}) =>
@@ -180,6 +200,8 @@ export function generateLatex(data: ResumeData, template: TemplateId) {
     \\textbf{\\Huge ${latexText(data.personal.fullName || "Your Name")}} \\\\ \\vspace{5pt}
 ${headerContactLine(data)}
 \\end{center}
+
+${summarySection(data.summary)}
 
 ${subheadingSection("Experience", data.experience)}
 
