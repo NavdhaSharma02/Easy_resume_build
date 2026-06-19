@@ -5,7 +5,6 @@ import type { ResumeEntry } from "../types/resume";
 import { emptyEntry } from "../data/sampleResumes";
 
 const entries = defineModel<ResumeEntry[]>({ required: true });
-const draggingEntryIndex = ref<number | null>(null);
 const draggingBullet = ref<{ entryId: string; index: number } | null>(null);
 
 defineProps<{
@@ -24,12 +23,6 @@ function addEntry() {
 
 function removeEntry(index: number) {
   entries.value.splice(index, 1);
-}
-
-function moveEntry(index: number, direction: -1 | 1) {
-  const next = index + direction;
-  if (next < 0 || next >= entries.value.length) return;
-  moveArrayItem(entries.value, index, next);
 }
 
 function addBullet(entry: ResumeEntry) {
@@ -51,30 +44,6 @@ function moveArrayItem<T>(items: T[], from: number, to: number) {
   if (from === to || from < 0 || to < 0 || from >= items.length || to >= items.length) return;
   const [item] = items.splice(from, 1);
   items.splice(to, 0, item);
-}
-
-function startEntryDrag(index: number, event: PointerEvent) {
-  if (entries.value.length < 2) return;
-  event.preventDefault();
-  draggingEntryIndex.value = index;
-  (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
-  window.addEventListener("pointermove", dragEntry);
-  window.addEventListener("pointerup", stopEntryDrag, { once: true });
-}
-
-function dragEntry(event: PointerEvent) {
-  const from = draggingEntryIndex.value;
-  if (from === null) return;
-  const target = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>("[data-entry-index]");
-  const to = Number(target?.dataset.entryIndex);
-  if (!Number.isInteger(to) || to === from) return;
-  moveArrayItem(entries.value, from, to);
-  draggingEntryIndex.value = to;
-}
-
-function stopEntryDrag() {
-  draggingEntryIndex.value = null;
-  window.removeEventListener("pointermove", dragEntry);
 }
 
 function startBulletDrag(entry: ResumeEntry, index: number, event: PointerEvent) {
@@ -116,26 +85,12 @@ function stopBulletDrag() {
     </div>
 
     <div class="space-y-4">
-      <div
-        v-for="(entry, index) in entries"
-        :key="entry.id"
-        :data-entry-index="index"
-        class="rounded-md border border-slate-200 p-3 dark:border-slate-800"
-        :class="draggingEntryIndex === index && 'border-moss bg-teal-50/40 dark:bg-teal-950/20'"
-      >
-        <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <button type="button" class="inline-flex touch-none select-none items-center gap-2 rounded px-1 py-1 text-xs text-slate-500 active:cursor-grabbing" @pointerdown="startEntryDrag(index, $event)">
-            <GripVertical :size="15" />
-            Reorder
+      <div v-for="(entry, index) in entries" :key="entry.id" class="rounded-md border border-slate-200 p-3 dark:border-slate-800">
+        <div class="mb-2 flex justify-end">
+          <button type="button" class="inline-flex items-center gap-1 rounded-md bg-rose-600 px-2 py-1 text-xs text-white" @click="removeEntry(index)">
+            <Trash2 :size="13" />
+            Remove
           </button>
-          <div class="flex gap-2">
-            <button type="button" class="rounded-md border border-slate-300 px-2 py-1 text-xs dark:border-slate-700" @click="moveEntry(index, -1)">Up</button>
-            <button type="button" class="rounded-md border border-slate-300 px-2 py-1 text-xs dark:border-slate-700" @click="moveEntry(index, 1)">Down</button>
-            <button type="button" class="inline-flex items-center gap-1 rounded-md bg-rose-600 px-2 py-1 text-xs text-white" @click="removeEntry(index)">
-              <Trash2 :size="13" />
-              Remove
-            </button>
-          </div>
         </div>
 
         <div class="grid gap-2 md:grid-cols-2">
