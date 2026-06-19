@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import mammoth from "mammoth";
-import pdfParse from "pdf-parse";
+import { PDFParse } from "pdf-parse";
 import { DEFAULT_SECTION_ORDER, type ResumeData, type ResumeEntry, type SkillGroup } from "../types/resume.js";
 
 type ParsedSections = Partial<Record<"summary" | "education" | "experience" | "projects" | "skills" | "achievements" | "certifications" | "responsibilities" | "publications", string[]>>;
@@ -31,8 +31,13 @@ const datePattern = /(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-
 
 export async function extractResumeText(file: Express.Multer.File) {
   if (file.mimetype === "application/pdf" || file.originalname.toLowerCase().endsWith(".pdf")) {
-    const parsed = await pdfParse(file.buffer);
-    return parsed.text;
+    const parser = new PDFParse({ data: file.buffer });
+    try {
+      const parsed = await parser.getText();
+      return parsed.text;
+    } finally {
+      await parser.destroy();
+    }
   }
 
   if (file.mimetype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || file.originalname.toLowerCase().endsWith(".docx")) {
@@ -204,13 +209,12 @@ function parseSkills(lines: string[]): SkillGroup[] {
   const text = lines.join("\n");
   if (!text.trim()) return [];
 
-  const groups = lines
-    .map((line) => {
+  const groups = lines.reduce<SkillGroup[]>((result, line) => {
       const [category, rawItems] = line.includes(":") ? line.split(/:(.*)/).filter(Boolean) : ["Skills", line];
       const items = rawItems.split(/[,|•]/).map((item) => item.trim()).filter(Boolean);
-      return items.length ? { id: randomUUID(), category: category.trim(), items } : undefined;
-    })
-    .filter((group): group is SkillGroup => Boolean(group));
+      if (items.length) result.push({ id: randomUUID(), category: category.trim(), items });
+      return result;
+    }, []);
 
   if (groups.length) return groups;
   return [{
