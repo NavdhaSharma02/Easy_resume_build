@@ -28,7 +28,7 @@ const headingMap: Record<string, keyof ParsedSections> = {
   publications: "publications"
 };
 
-const datePattern = /(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{4}\s*(?:-|–|to)\s*(?:present|current|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{4}|\d{4})|\d{4}\s*(?:-|–|to)\s*(?:present|current|\d{4})/i;
+const datePattern = /(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{4}\s*(?:-|–|to)?\s*(?:present|current|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{4}|\d{4})|\d{4}\s*(?:-|–|to)\s*(?:present|current|\d{4})/i;
 const emailPattern = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
 const phonePattern = /(?:\+?\d[\d\s().-]{7,}\d)/;
 const urlPattern = /(?:https?:\/\/)?(?:www\.)?[A-Za-z0-9.-]+\.[A-Za-z]{2,}(?:\/[^\s,)]+)?/gi;
@@ -87,7 +87,7 @@ export function parseResumeText(text: string): ResumeData {
     },
     education: parseEntries(cleanSectionLines(sections.education ?? []), "education"),
     experience: parseEntries(cleanSectionLines(sections.experience ?? []), "experience"),
-    projects: parseEntries(cleanSectionLines(sections.projects ?? []), "projects"),
+    projects: parseEntries(cleanSectionLines(sections.projects ?? [], { keepLinks: true }), "projects"),
     skills: parseSkills(cleanSectionLines(sections.skills ?? [])),
     achievements: parseEntries(cleanSectionLines(sections.achievements ?? []), "general"),
     certifications: parseEntries(cleanSectionLines(sections.certifications ?? []), "general"),
@@ -140,7 +140,7 @@ function firstMatch(text: string, pattern: RegExp) {
 }
 
 function parseEntries(lines: string[], kind: "education" | "experience" | "projects" | "general") {
-  const blocks = groupBlocks(lines, kind);
+  const blocks = kind === "education" ? groupEducationBlocks(lines) : groupBlocks(lines, kind);
   const entries = blocks.map((block) => parseEntry(block, kind)).filter((entry) => entry.title || entry.organization || entry.bullets.some(Boolean));
   return entries.length ? entries : [];
 }
@@ -164,11 +164,27 @@ function groupBlocks(lines: string[], kind: "education" | "experience" | "projec
   return blocks.length ? blocks : [lines];
 }
 
+function groupEducationBlocks(lines: string[]) {
+  const meaningful = lines.map(stripBullet).filter(Boolean);
+  if (!meaningful.length) return [];
+
+  const degreeIndexes = meaningful
+    .map((line, index) => isDegreeLine(line) ? index : -1)
+    .filter((index) => index >= 0);
+
+  if (degreeIndexes.length <= 1) return [meaningful];
+
+  return degreeIndexes.map((start, index) => {
+    const end = degreeIndexes[index + 1] ?? meaningful.length;
+    return meaningful.slice(start, end);
+  });
+}
+
 function parseEntry(block: string[], kind: "education" | "experience" | "projects" | "general"): ResumeEntry {
   const usefulLines = block.map((line) => line.trim()).filter(Boolean);
   const heading = usefulLines[0] ?? "";
   const joined = usefulLines.join(" ");
-  const date = usefulLines.map((line) => line.match(datePattern)?.[0]).find(Boolean) ?? "";
+  const date = firstMatch(joined, datePattern);
   const nonBulletMeta = usefulLines.filter((line) => !isBulletLike(line) && !isLinkOnlyLine(line));
   const bulletLines = usefulLines
     .filter((line, index) => index > 0 && !isMetadataLine(line, kind))
@@ -177,15 +193,19 @@ function parseEntry(block: string[], kind: "education" | "experience" | "project
   const parts = splitParts(heading);
 
   if (kind === "education") {
-    const degree = nonBulletMeta.find(isDegreeLine) ?? parts.find(isDegreeLine) ?? parts[0] ?? heading;
-    const school = nonBulletMeta.find((line) => line !== degree && isInstitutionLine(line)) ?? parts.find((part) => part !== degree) ?? "";
+    const degree = nonBulletMeta.find(isDegreeLine) ?? parts.find(isDegreeLine) ?? heading;
+    const schoolLine = nonBulletMeta.find((line) => line !== degree && isInstitutionLine(line)) ?? "";
+    const schoolParts = splitParts(cleanDateText(schoolLine));
+    const school = schoolParts[0] ?? cleanDateText(schoolLine);
+    const location = schoolParts.slice(1).join(", ");
+    const educationBullets = bulletLines.filter((line) => !isDegreeLine(line) && !isInstitutionLine(line) && !/(?:cgpa|gpa)[:\s]*[0-9.]+/i.test(line));
     return entry({
       title: cleanDateText(degree),
-      organization: cleanDateText(school),
-      location: "",
+      organization: school,
+      location,
       dates: date,
       cgpa: firstMatch(joined, /(?:cgpa|gpa)[:\s]*([0-9.]+(?:\/[0-9.]+)?)/i).replace(/^(?:cgpa|gpa)[:\s]*/i, ""),
-      bullets: bulletLines
+      bullets: educationBullets
     });
   }
 
@@ -288,8 +308,10 @@ function findUrls(text: string) {
     .filter((url, index, urls) => urls.indexOf(url) === index);
 }
 
-function cleanSectionLines(lines: string[]) {
-  return lines.map((line) => line.trim()).filter((line) => line && !isContactLine(line) && !parseHeadingLine(line).heading);
+function cleanSectionLines(lines: string[], options: { keepLinks?: boolean } = {}) {
+  return lines
+    .map((line) => line.trim())
+    .filter((line) => line && !parseHeadingLine(line).heading && (options.keepLinks || !isContactLine(line)));
 }
 
 function isContactLine(line: string) {
@@ -306,7 +328,6 @@ function isBulletLike(line: string) {
 
 function isLikelyEntryStart(line: string, current: string[], kind: "education" | "experience" | "projects" | "general") {
   if (current.length < 2) return false;
-  if (kind === "skills") return false;
   const currentHasBullet = current.length > 2;
   const currentHasDate = current.some((item) => datePattern.test(item));
   if (kind === "projects") return currentHasBullet && !/tech|stack|tools|built with|technologies/i.test(line);
