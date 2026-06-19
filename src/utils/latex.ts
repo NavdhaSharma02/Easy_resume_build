@@ -196,7 +196,7 @@ export function generateLatex(data: ResumeData, template: TemplateId) {
     \\item
     \\begin{tabular*}{\\textwidth}{l@{\\extracolsep{\\fill}}r}
       #1 & {\\color{dark-grey}\\small #2} \\\\
-    \\end{tabular*}\\vspace{-4pt}
+    \\end{tabular*}\\vspace{-1pt}
 }
 
 \\renewcommand\\labelitemii{$\\vcenter{\\hbox{\\tiny$\\bullet$}}$}
