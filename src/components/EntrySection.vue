@@ -30,10 +30,21 @@ function moveEntry(index: number, direction: -1 | 1) {
   entries.value.splice(next, 0, item);
 }
 
-const bulletsToText = (entry: ResumeEntry) => entry.bullets.join("\n");
-const updateBullets = (entry: ResumeEntry, value: string) => {
-  entry.bullets = value.split("\n");
-};
+function addBullet(entry: ResumeEntry) {
+  entry.bullets.push("");
+}
+
+function removeBullet(entry: ResumeEntry, index: number) {
+  entry.bullets.splice(index, 1);
+  if (!entry.bullets.length) entry.bullets.push("");
+}
+
+function moveBullet(entry: ResumeEntry, index: number, direction: -1 | 1) {
+  const next = index + direction;
+  if (next < 0 || next >= entry.bullets.length) return;
+  const [item] = entry.bullets.splice(index, 1);
+  entry.bullets.splice(next, 0, item);
+}
 </script>
 
 <template>
@@ -73,7 +84,30 @@ const updateBullets = (entry: ResumeEntry, value: string) => {
             <input v-model="entry.cgpa" placeholder="e.g. 8.7/10" />
           </div>
         </div>
-        <textarea class="mt-2" :value="bulletsToText(entry)" placeholder="Bullets, one per line" @input="updateBullets(entry, ($event.target as HTMLTextAreaElement).value)" />
+
+        <div class="mt-3 space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs font-medium text-slate-500">Bullet points</span>
+            <button type="button" class="inline-flex items-center gap-1 rounded-md border border-slate-300 px-2 py-1 text-xs dark:border-slate-700" @click="addBullet(entry)">
+              <Plus :size="13" />
+              Add bullet
+            </button>
+          </div>
+          <div v-for="(_bullet, bulletIndex) in entry.bullets" :key="bulletIndex" class="rounded-md border border-slate-200 p-2 dark:border-slate-800">
+            <div class="mb-2 flex items-center justify-between gap-2">
+              <span class="text-xs text-slate-500">Bullet {{ bulletIndex + 1 }}</span>
+              <div class="flex gap-2">
+                <button type="button" class="rounded-md border border-slate-300 px-2 py-1 text-xs dark:border-slate-700" @click="moveBullet(entry, bulletIndex, -1)">Up</button>
+                <button type="button" class="rounded-md border border-slate-300 px-2 py-1 text-xs dark:border-slate-700" @click="moveBullet(entry, bulletIndex, 1)">Down</button>
+                <button type="button" class="inline-flex items-center gap-1 rounded-md bg-rose-600 px-2 py-1 text-xs text-white" @click="removeBullet(entry, bulletIndex)">
+                  <Trash2 :size="13" />
+                  Remove
+                </button>
+              </div>
+            </div>
+            <textarea v-model="entry.bullets[bulletIndex]" class="min-h-24" placeholder="Write this bullet as a short paragraph" />
+          </div>
+        </div>
       </div>
     </div>
   </section>

@@ -2,11 +2,12 @@ import type { ResumeData, ResumeEntry, SkillGroup, TemplateId } from "../types/r
 import { escapeLatex, sanitizeLatex } from "../utils/latex.js";
 
 const latexText = (value = "") => escapeLatex(value);
+const latexParagraph = (value = "") => latexText(value.replace(/\s*\n+\s*/g, " "));
 
 const resumeItems = (items: string[]) =>
   items.filter(Boolean).length
     ? `      \\resumeItemListStart
-${items.filter(Boolean).map((item) => `        \\resumeItem{${latexText(item)}}`).join("\n")}
+${items.filter(Boolean).map((item) => `        \\resumeItem{${latexParagraph(item)}}`).join("\n")}
       \\resumeItemListEnd`
     : "";
 
