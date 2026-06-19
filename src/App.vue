@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watchEffect } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch, watchEffect } from "vue";
 import AppShell from "./components/AppShell.vue";
 import AuthScreen from "./components/AuthScreen.vue";
 import BuilderView from "./components/BuilderView.vue";
@@ -14,8 +14,10 @@ const resumes = ref<Resume[]>([]);
 const activeResumeId = ref<string | null>(null);
 const appError = ref("");
 const isLoading = ref(false);
+let autosaveTimer: ReturnType<typeof window.setTimeout> | undefined;
 
 const activeResume = computed(() => resumes.value.find((resume) => resume.id === activeResumeId.value) ?? null);
+const activeResumeSaveSnapshot = computed(() => activeResume.value ? resumeSnapshot(activeResume.value) : "");
 const validSectionIds = new Set<string>(DEFAULT_SECTION_ORDER);
 
 watchEffect(() => {
@@ -29,6 +31,40 @@ onMounted(() => {
     loadResumes();
   }
 });
+
+onBeforeUnmount(() => {
+  if (autosaveTimer) window.clearTimeout(autosaveTimer);
+});
+
+watch(activeResumeSaveSnapshot, (snapshot, previousSnapshot) => {
+  if (!snapshot || !previousSnapshot) return;
+  const currentId = snapshotResumeId(snapshot);
+  const previousId = snapshotResumeId(previousSnapshot);
+  if (!currentId || currentId !== previousId) return;
+
+  if (autosaveTimer) window.clearTimeout(autosaveTimer);
+  autosaveTimer = window.setTimeout(() => {
+    const resume = activeResume.value;
+    if (resume) void saveResume(resume, resumeSnapshot(resume));
+  }, 900);
+});
+
+function resumeSnapshot(resume: Resume) {
+  return JSON.stringify({
+    id: resume.id,
+    title: resume.title,
+    template: resume.template,
+    data: resume.data
+  });
+}
+
+function snapshotResumeId(snapshot: string) {
+  try {
+    return (JSON.parse(snapshot) as { id?: string }).id ?? "";
+  } catch {
+    return "";
+  }
+}
 
 function fromApiResume(resume: ApiResume): Resume {
   const existingOrder = resume.resumeData.sectionOrder ?? [];
@@ -99,18 +135,24 @@ async function deleteResume(id: string) {
   resumes.value = resumes.value.filter((resume) => resume.id !== id);
 }
 
-async function saveResume(updated: Resume) {
-  const saved = await apiRequest<ApiResume>(`/api/resumes/${updated.id}`, {
-    method: "PUT",
-    body: JSON.stringify({
-      title: updated.title,
-      template: updated.template,
-      resumeData: updated.data,
-      latexContent: updated.latexContent
-    })
-  });
-  const index = resumes.value.findIndex((resume) => resume.id === updated.id);
-  if (index >= 0) resumes.value[index] = fromApiResume(saved);
+async function saveResume(updated: Resume, requestSnapshot = resumeSnapshot(updated)) {
+  appError.value = "";
+  try {
+    const saved = await apiRequest<ApiResume>(`/api/resumes/${updated.id}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        title: updated.title,
+        template: updated.template,
+        resumeData: updated.data
+      })
+    });
+    const index = resumes.value.findIndex((resume) => resume.id === updated.id);
+    if (index >= 0 && resumeSnapshot(resumes.value[index]) === requestSnapshot) {
+      resumes.value[index] = fromApiResume(saved);
+    }
+  } catch (error) {
+    appError.value = error instanceof Error ? error.message : "Could not save resume";
+  }
 }
 
 function logout() {
@@ -131,7 +173,7 @@ function logout() {
     </div>
     <AuthScreen v-if="!user" @authenticated="authenticate" />
     <main v-else-if="isLoading" class="mx-auto max-w-7xl px-4 py-6 text-sm text-slate-500">Loading resumes...</main>
-    <BuilderView v-else-if="activeResume" :resume="activeResume" @back="activeResumeId = null" @save="saveResume" />
+    <BuilderView v-else-if="activeResume" :resume="activeResume" @back="activeResumeId = null" />
     <DashboardView v-else :resumes="resumes" @create="createResume" @edit="activeResumeId = $event" @duplicate="duplicateResume" @delete="deleteResume" />
   </AppShell>
 </template>

@@ -57,6 +57,12 @@ router.put("/:id", validate(idSchema, "params"), validate(updateResumeSchema), a
   const id = routeId(req);
   const existing = await prisma.resume.findFirst({ where: { id, userId: req.user!.userId } });
   if (!existing) return res.status(404).json({ message: "Resume not found" });
+  const template = req.body.template ?? existing.template.toLowerCase();
+  const latexContent = req.body.latexContent
+    ? sanitizeLatex(req.body.latexContent)
+    : req.body.resumeData
+      ? generateLatex(req.body.resumeData, template as TemplateId)
+      : undefined;
 
   const resume = await prisma.resume.update({
     where: { id },
@@ -64,7 +70,7 @@ router.put("/:id", validate(idSchema, "params"), validate(updateResumeSchema), a
       title: req.body.title,
       template: req.body.template ? toPrismaTemplate(req.body.template) : undefined,
       resumeData: req.body.resumeData,
-      latexContent: req.body.latexContent ? sanitizeLatex(req.body.latexContent) : undefined
+      latexContent
     }
   });
   res.json(resume);

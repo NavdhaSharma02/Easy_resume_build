@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { ArrowDown, ArrowLeft, ArrowUp, Download, FileCode2, FileText, Save, Wand2 } from "lucide-vue-next";
+import { ArrowDown, ArrowLeft, ArrowUp, Download, FileCode2, FileText, Wand2 } from "lucide-vue-next";
 import { DEFAULT_SECTION_ORDER, type AtsReport, type Resume, type SectionId, type TemplateId } from "../types/resume";
 import { analyzeResume } from "../utils/ats";
 import { API_URL, apiUrl } from "../utils/api";
@@ -15,7 +15,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   back: [];
-  save: [resume: Resume];
 }>();
 
 const activeTab = ref<"form" | "latex" | "pdf" | "analytics">("form");
@@ -48,12 +47,6 @@ props.resume.data.sectionOrder = normalizeSectionOrder(props.resume.data.section
 
 const latex = computed(() => generateLatex(props.resume.data, props.resume.template));
 const orderedSections = computed(() => props.resume.data.sectionOrder ?? DEFAULT_SECTION_ORDER);
-
-function saveResume() {
-  props.resume.updatedAt = new Date().toISOString();
-  props.resume.atsScore = report.value.score;
-  emit("save", props.resume);
-}
 
 function analyze() {
   report.value = analyzeResume(props.resume.data, jobDescription.value);
@@ -138,10 +131,6 @@ function moveSection(index: number, direction: -1 | 1) {
           <option value="modern">Modern</option>
           <option value="compact">Compact</option>
         </select>
-        <button class="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700" @click="saveResume">
-          <Save :size="16" />
-          Save
-        </button>
         <button class="inline-flex items-center gap-2 rounded-md border border-slate-300 px-3 py-2 text-sm dark:border-slate-700" @click="activeTab = 'latex'">
           <FileCode2 :size="16" />
           LaTeX

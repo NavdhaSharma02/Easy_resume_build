@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import { GripVertical, Plus, Trash2 } from "lucide-vue-next";
 import type { ResumeEntry } from "../types/resume";
 import { emptyEntry } from "../data/sampleResumes";
 
 const entries = defineModel<ResumeEntry[]>({ required: true });
+const draggingEntryIndex = ref<number | null>(null);
+const draggingBullet = ref<{ entryId: string; index: number } | null>(null);
 
 defineProps<{
   title: string;
@@ -26,8 +29,7 @@ function removeEntry(index: number) {
 function moveEntry(index: number, direction: -1 | 1) {
   const next = index + direction;
   if (next < 0 || next >= entries.value.length) return;
-  const [item] = entries.value.splice(index, 1);
-  entries.value.splice(next, 0, item);
+  moveArrayItem(entries.value, index, next);
 }
 
 function addBullet(entry: ResumeEntry) {
@@ -42,8 +44,64 @@ function removeBullet(entry: ResumeEntry, index: number) {
 function moveBullet(entry: ResumeEntry, index: number, direction: -1 | 1) {
   const next = index + direction;
   if (next < 0 || next >= entry.bullets.length) return;
-  const [item] = entry.bullets.splice(index, 1);
-  entry.bullets.splice(next, 0, item);
+  moveArrayItem(entry.bullets, index, next);
+}
+
+function moveArrayItem<T>(items: T[], from: number, to: number) {
+  if (from === to || from < 0 || to < 0 || from >= items.length || to >= items.length) return;
+  const [item] = items.splice(from, 1);
+  items.splice(to, 0, item);
+}
+
+function startEntryDrag(index: number, event: PointerEvent) {
+  if (entries.value.length < 2) return;
+  event.preventDefault();
+  draggingEntryIndex.value = index;
+  (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+  window.addEventListener("pointermove", dragEntry);
+  window.addEventListener("pointerup", stopEntryDrag, { once: true });
+}
+
+function dragEntry(event: PointerEvent) {
+  const from = draggingEntryIndex.value;
+  if (from === null) return;
+  const target = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>("[data-entry-index]");
+  const to = Number(target?.dataset.entryIndex);
+  if (!Number.isInteger(to) || to === from) return;
+  moveArrayItem(entries.value, from, to);
+  draggingEntryIndex.value = to;
+}
+
+function stopEntryDrag() {
+  draggingEntryIndex.value = null;
+  window.removeEventListener("pointermove", dragEntry);
+}
+
+function startBulletDrag(entry: ResumeEntry, index: number, event: PointerEvent) {
+  if (entry.bullets.length < 2) return;
+  event.preventDefault();
+  draggingBullet.value = { entryId: entry.id, index };
+  (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+  window.addEventListener("pointermove", dragBullet);
+  window.addEventListener("pointerup", stopBulletDrag, { once: true });
+}
+
+function dragBullet(event: PointerEvent) {
+  const dragState = draggingBullet.value;
+  if (!dragState) return;
+  const entry = entries.value.find((item) => item.id === dragState.entryId);
+  if (!entry) return;
+  const target = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>("[data-bullet-index]");
+  if (target?.dataset.bulletEntryId !== entry.id) return;
+  const to = Number(target.dataset.bulletIndex);
+  if (!Number.isInteger(to) || to === dragState.index) return;
+  moveArrayItem(entry.bullets, dragState.index, to);
+  draggingBullet.value = { entryId: entry.id, index: to };
+}
+
+function stopBulletDrag() {
+  draggingBullet.value = null;
+  window.removeEventListener("pointermove", dragBullet);
 }
 </script>
 
@@ -58,12 +116,18 @@ function moveBullet(entry: ResumeEntry, index: number, direction: -1 | 1) {
     </div>
 
     <div class="space-y-4">
-      <div v-for="(entry, index) in entries" :key="entry.id" class="rounded-md border border-slate-200 p-3 dark:border-slate-800">
+      <div
+        v-for="(entry, index) in entries"
+        :key="entry.id"
+        :data-entry-index="index"
+        class="rounded-md border border-slate-200 p-3 dark:border-slate-800"
+        :class="draggingEntryIndex === index && 'border-moss bg-teal-50/40 dark:bg-teal-950/20'"
+      >
         <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <span class="inline-flex items-center gap-2 text-xs text-slate-500">
+          <button type="button" class="inline-flex touch-none select-none items-center gap-2 rounded px-1 py-1 text-xs text-slate-500 active:cursor-grabbing" @pointerdown="startEntryDrag(index, $event)">
             <GripVertical :size="15" />
             Reorder
-          </span>
+          </button>
           <div class="flex gap-2">
             <button type="button" class="rounded-md border border-slate-300 px-2 py-1 text-xs dark:border-slate-700" @click="moveEntry(index, -1)">Up</button>
             <button type="button" class="rounded-md border border-slate-300 px-2 py-1 text-xs dark:border-slate-700" @click="moveEntry(index, 1)">Down</button>
@@ -93,9 +157,19 @@ function moveBullet(entry: ResumeEntry, index: number, direction: -1 | 1) {
               Add bullet
             </button>
           </div>
-          <div v-for="(_bullet, bulletIndex) in entry.bullets" :key="bulletIndex" class="rounded-md border border-slate-200 p-2 dark:border-slate-800">
+          <div
+            v-for="(_bullet, bulletIndex) in entry.bullets"
+            :key="bulletIndex"
+            :data-bullet-entry-id="entry.id"
+            :data-bullet-index="bulletIndex"
+            class="rounded-md border border-slate-200 p-2 dark:border-slate-800"
+            :class="draggingBullet?.entryId === entry.id && draggingBullet.index === bulletIndex && 'border-moss bg-teal-50/40 dark:bg-teal-950/20'"
+          >
             <div class="mb-2 flex items-center justify-between gap-2">
-              <span class="text-xs text-slate-500">Bullet {{ bulletIndex + 1 }}</span>
+              <button type="button" class="inline-flex touch-none select-none items-center gap-2 rounded px-1 py-1 text-xs text-slate-500 active:cursor-grabbing" @pointerdown="startBulletDrag(entry, bulletIndex, $event)">
+                <GripVertical :size="13" />
+                Bullet {{ bulletIndex + 1 }}
+              </button>
               <div class="flex gap-2">
                 <button type="button" class="rounded-md border border-slate-300 px-2 py-1 text-xs dark:border-slate-700" @click="moveBullet(entry, bulletIndex, -1)">Up</button>
                 <button type="button" class="rounded-md border border-slate-300 px-2 py-1 text-xs dark:border-slate-700" @click="moveBullet(entry, bulletIndex, 1)">Down</button>
