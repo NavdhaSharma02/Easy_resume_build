@@ -28,7 +28,7 @@ ${projectLinks(item)}
 ${resumeItems(item.bullets)}`;
 
 const projectTechStack = (item: ResumeEntry) =>
-  item.dates ? `      \\small{\\textit{${latexText(item.dates)}}}\\\\[-1pt]` : "";
+  item.dates ? `      \\small{\\textit{${latexText(item.dates)}}}\\\\[1pt]` : "";
 
 const normalizeUrl = (value: string) => /^https?:\/\//i.test(value) ? value : `https://${value}`;
 
@@ -41,7 +41,7 @@ const projectLinks = (item: ResumeEntry) => {
     projectLink(item.location, "Live")
   ].filter(Boolean);
 
-  return links.length ? `      \\small{${links.join(" $|$ ")}}\\vspace{-3pt}` : "";
+  return links.length ? `      \\small{${links.join(" $|$ ")}}\\\\[1pt]` : "";
 };
 
 const section = (title: string, body: string) =>
@@ -168,11 +168,103 @@ const headerLinks = (data: ResumeData) => {
 
 const headerContactLine = (data: ResumeData) => {
   const contact = headerLinks(data);
-  return contact ? `    \\small ${contact}\n    \\\\ \\vspace{-3pt}` : "    \\vspace{-8pt}";
+  return contact ? `    \\small ${contact}\n    \\\\ \\vspace{-1pt}` : "    \\vspace{-4pt}";
+};
+
+const entryText = (entry: ResumeEntry) =>
+  [entry.title, entry.organization, entry.location, entry.dates, entry.cgpa, ...entry.bullets].join(" ");
+
+const contentScore = (data: ResumeData) => {
+  const entries = [
+    ...data.education,
+    ...data.experience,
+    ...data.projects,
+    ...data.achievements,
+    ...data.certifications,
+    ...data.responsibilities,
+    ...data.publications
+  ];
+  const skillText = data.skills.map((group) => [group.category, ...group.items].join(" ")).join(" ");
+  const textLength = [data.summary, skillText, ...entries.map(entryText)].join(" ").length;
+  const bulletCount = entries.reduce((count, entry) => count + entry.bullets.filter(Boolean).length, 0);
+
+  return textLength + entries.length * 90 + bulletCount * 80;
+};
+
+const layoutForResume = (data: ResumeData) => {
+  const score = contentScore(data);
+
+  if (score > 9000) {
+    return {
+      documentSize: "10pt",
+      lineSpread: "0.97",
+      sideMargin: "-0.58in",
+      textWidth: "1.16in",
+      topMargin: "-.58in",
+      textHeight: "1.16in",
+      sectionBefore: "-1pt",
+      sectionSize: "\\normalsize",
+      ruleWidth: "1.2pt",
+      sectionAfter: "-5pt",
+      itemSpace: "-2pt",
+      subheadingBefore: "-2pt",
+      subheadingRowSpace: "0pt",
+      subheadingAfter: "-4pt",
+      projectAfter: "-2pt",
+      itemListEnd: "-2pt",
+      nameSize: "\\LARGE",
+      bodySize: "\\small"
+    };
+  }
+
+  if (score > 6000) {
+    return {
+      documentSize: "10pt",
+      lineSpread: "0.99",
+      sideMargin: "-0.54in",
+      textWidth: "1.08in",
+      topMargin: "-.54in",
+      textHeight: "1.08in",
+      sectionBefore: "0pt",
+      sectionSize: "\\large",
+      ruleWidth: "1.5pt",
+      sectionAfter: "-4pt",
+      itemSpace: "-1pt",
+      subheadingBefore: "-1pt",
+      subheadingRowSpace: "1pt",
+      subheadingAfter: "-3pt",
+      projectAfter: "-1pt",
+      itemListEnd: "0pt",
+      nameSize: "\\LARGE",
+      bodySize: ""
+    };
+  }
+
+  return {
+    documentSize: "11pt",
+    lineSpread: "1",
+    sideMargin: "-0.5in",
+    textWidth: "1in",
+    topMargin: "-.5in",
+    textHeight: "1.0in",
+    sectionBefore: "2pt",
+    sectionSize: "\\large",
+    ruleWidth: "2pt",
+    sectionAfter: "-4pt",
+    itemSpace: "0pt",
+    subheadingBefore: "0pt",
+    subheadingRowSpace: "1pt",
+    subheadingAfter: "-2pt",
+    projectAfter: "0pt",
+    itemListEnd: "0pt",
+    nameSize: "\\Huge",
+    bodySize: ""
+  };
 };
 
 export function generateLatex(data: ResumeData, template: TemplateId) {
   void template;
+  const layout = layoutForResume(data);
 
   return sanitizeLatex(`%-------------------------
 % Resume in Latex
@@ -181,7 +273,7 @@ export function generateLatex(data: ResumeData, template: TemplateId) {
 % License : MIT
 %------------------------
 
-\\documentclass[letterpaper,10pt]{article}
+\\documentclass[letterpaper,${layout.documentSize}]{article}
 
 \\usepackage{latexsym}
 \\usepackage[empty]{fullpage}
@@ -196,7 +288,7 @@ export function generateLatex(data: ResumeData, template: TemplateId) {
 \\usepackage{tabularx}
 \\usepackage{fontawesome5}
 
-\\linespread{0.94}
+\\linespread{${layout.lineSpread}}
 
 \\definecolor{light-grey}{gray}{0.83}
 \\definecolor{dark-grey}{gray}{0.3}
@@ -211,11 +303,11 @@ export function generateLatex(data: ResumeData, template: TemplateId) {
 \\renewcommand{\\headrulewidth}{0pt}
 \\renewcommand{\\footrulewidth}{0pt}
 
-\\addtolength{\\oddsidemargin}{-0.65in}
+\\addtolength{\\oddsidemargin}{${layout.sideMargin}}
 \\addtolength{\\evensidemargin}{0in}
-\\addtolength{\\textwidth}{1.3in}
-\\addtolength{\\topmargin}{-.7in}
-\\addtolength{\\textheight}{1.35in}
+\\addtolength{\\textwidth}{${layout.textWidth}}
+\\addtolength{\\topmargin}{${layout.topMargin}}
+\\addtolength{\\textheight}{${layout.textHeight}}
 
 \\urlstyle{same}
 \\raggedbottom
@@ -227,44 +319,44 @@ export function generateLatex(data: ResumeData, template: TemplateId) {
 \\emergencystretch=2em
 
 \\titleformat {\\section}{
-    \\bfseries \\vspace{-4pt} \\raggedright \\normalsize
-}{}{0em}{}[\\color{light-grey} {\\titlerule[1pt]} \\vspace{-9pt}]
+    \\bfseries \\vspace{${layout.sectionBefore}} \\raggedright ${layout.sectionSize}
+}{}{0em}{}[\\color{light-grey} {\\titlerule[${layout.ruleWidth}]} \\vspace{${layout.sectionAfter}}]
 
 \\newcommand{\\resumeItem}[1]{
   \\item\\small{
-    {#1 \\vspace{-4pt}}
+    {#1 \\vspace{${layout.itemSpace}}}
   }
 }
 
 \\newcommand{\\resumeSubheading}[4]{
-  \\vspace{-4pt}\\item
+  \\vspace{${layout.subheadingBefore}}\\item
     \\begin{tabular*}{\\textwidth}[t]{l@{\\extracolsep{\\fill}}r}
-      \\textbf{#1} & {\\color{dark-grey}\\small #2}\\vspace{-1pt}\\\\
+      \\textbf{#1} & {\\color{dark-grey}\\small #2}\\vspace{${layout.subheadingRowSpace}}\\\\
       \\textit{#3} & {\\color{dark-grey} \\small #4}\\\\
-    \\end{tabular*}\\vspace{-8pt}
+    \\end{tabular*}\\vspace{${layout.subheadingAfter}}
 }
 
 \\newcommand{\\resumeProjectHeading}[2]{
     \\item
     \\begin{tabular*}{\\textwidth}{l@{\\extracolsep{\\fill}}r}
       #1 & {\\color{dark-grey}\\small #2} \\\\
-    \\end{tabular*}\\vspace{-5pt}
+    \\end{tabular*}\\vspace{${layout.projectAfter}}
 }
 
 \\renewcommand\\labelitemii{$\\vcenter{\\hbox{\\tiny$\\bullet$}}$}
 \\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0in, label={}, itemsep=0pt, topsep=0pt, parsep=0pt, partopsep=0pt]}
 \\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
 \\newcommand{\\resumeItemListStart}{\\begin{itemize}[itemsep=0pt, topsep=0pt, parsep=0pt, partopsep=0pt]}
-\\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-6pt}}
+\\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{${layout.itemListEnd}}}
 
 \\color{text-grey}
 
 \\begin{document}
-\\small
+${layout.bodySize}
 
 %----------HEADING----------
 \\begin{center}
-    \\textbf{\\Large ${latexText(data.personal.fullName || "Your Name")}} \\\\ \\vspace{1pt}
+    \\textbf{${layout.nameSize} ${latexText(data.personal.fullName || "Your Name")}} \\\\ \\vspace{2pt}
 ${headerContactLine(data)}
 \\end{center}
 
