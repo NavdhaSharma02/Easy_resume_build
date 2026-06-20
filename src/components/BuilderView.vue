@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { ArrowLeft, Download, FileCode2, FileText, Wand2 } from "lucide-vue-next";
+import { ArrowDown, ArrowLeft, ArrowUp, Download, FileCode2, FileText, GripVertical, Wand2 } from "lucide-vue-next";
 import { DEFAULT_SECTION_ORDER, type AtsReport, type Resume, type SectionId, type TemplateId } from "../types/resume";
 import { analyzeResume } from "../utils/ats";
 import { API_URL, apiUrl } from "../utils/api";
@@ -155,8 +155,8 @@ function moveSectionPointerDrag(event: PointerEvent) {
   event.preventDefault();
   const from = draggingSectionIndex.value;
   if (from === null) return;
-  const target = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>("[data-section-order-index]");
-  const to = Number(target?.dataset.sectionOrderIndex);
+  const target = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>("[data-section-index]");
+  const to = Number(target?.dataset.sectionIndex);
   if (!Number.isInteger(to) || to === from) return;
   moveSection(from, to);
   draggingSectionIndex.value = to;
@@ -218,7 +218,50 @@ function stopSectionPointerDrag() {
           </div>
         </section>
 
-        <template v-for="sectionId in orderedSections" :key="sectionId">
+        <div
+          v-for="(sectionId, index) in orderedSections"
+          :key="sectionId"
+          :data-section-index="index"
+          class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-2"
+          :class="draggingSectionIndex === index && 'opacity-80'"
+          @dragover="dragOverSection(index, $event)"
+          @drop="dropSection(index, $event)"
+        >
+          <div class="flex flex-col items-center gap-2 pt-3">
+            <button
+              type="button"
+              draggable="true"
+              class="inline-flex h-9 w-9 touch-none cursor-grab select-none items-center justify-center rounded-md border border-slate-200 bg-white text-slate-500 shadow-sm active:cursor-grabbing dark:border-slate-800 dark:bg-slate-900"
+              :class="draggingSectionIndex === index && 'border-moss text-moss'"
+              :aria-label="`Drag ${sectionLabels[sectionId]} section`"
+              @pointerdown="startSectionPointerDrag(index, $event)"
+              @dragstart="startSectionDrag(index, $event)"
+              @dragend="stopSectionDrag"
+            >
+              <GripVertical :size="17" />
+            </button>
+            <button
+              type="button"
+              class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-500 disabled:cursor-not-allowed disabled:opacity-35 dark:border-slate-800 dark:bg-slate-900"
+              :disabled="index === 0"
+              :aria-label="`Move ${sectionLabels[sectionId]} section up`"
+              @pointerdown.stop
+              @click="moveSection(index, index - 1)"
+            >
+              <ArrowUp :size="15" />
+            </button>
+            <button
+              type="button"
+              class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-500 disabled:cursor-not-allowed disabled:opacity-35 dark:border-slate-800 dark:bg-slate-900"
+              :disabled="index === orderedSections.length - 1"
+              :aria-label="`Move ${sectionLabels[sectionId]} section down`"
+              @pointerdown.stop
+              @click="moveSection(index, index + 1)"
+            >
+              <ArrowDown :size="15" />
+            </button>
+          </div>
+
           <section v-if="sectionId === 'summary'" class="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 sm:p-4">
             <h2 class="mb-3 font-semibold">Summary</h2>
             <textarea v-model="resume.data.summary" class="min-h-28" placeholder="Brief professional summary" />
@@ -231,7 +274,7 @@ function stopSectionPointerDrag() {
           <EntrySection v-else-if="sectionId === 'certifications'" v-model="resume.data.certifications" title="Certifications" />
           <EntrySection v-else-if="sectionId === 'responsibilities'" v-model="resume.data.responsibilities" title="Positions of Responsibility" />
           <EntrySection v-else-if="sectionId === 'publications'" v-model="resume.data.publications" title="Publications" title-label="Publication link" hide-organization hide-location hide-dates />
-        </template>
+        </div>
       </div>
 
       <aside class="order-first space-y-5 lg:order-none">
@@ -241,17 +284,44 @@ function stopSectionPointerDrag() {
             <div
               v-for="(sectionId, index) in orderedSections"
               :key="sectionId"
-              :data-section-order-index="index"
-              draggable="true"
-              class="cursor-grab touch-none select-none rounded-md border border-slate-200 px-3 py-2 text-sm active:cursor-grabbing dark:border-slate-800"
+              :data-section-index="index"
+              class="flex items-center gap-2 rounded-md border border-slate-200 px-2 py-2 text-sm dark:border-slate-800"
               :class="draggingSectionIndex === index && 'border-moss bg-teal-50/60 dark:bg-teal-950/20'"
-              @pointerdown="startSectionPointerDrag(index, $event)"
-              @dragstart="startSectionDrag(index, $event)"
               @dragover="dragOverSection(index, $event)"
               @drop="dropSection(index, $event)"
-              @dragend="stopSectionDrag"
             >
-              {{ sectionLabels[sectionId] }}
+              <button
+                type="button"
+                draggable="true"
+                class="inline-flex h-8 w-8 shrink-0 touch-none cursor-grab select-none items-center justify-center rounded text-slate-500 active:cursor-grabbing"
+                :aria-label="`Drag ${sectionLabels[sectionId]} section`"
+                @pointerdown="startSectionPointerDrag(index, $event)"
+                @dragstart="startSectionDrag(index, $event)"
+                @dragend="stopSectionDrag"
+              >
+                <GripVertical :size="16" />
+              </button>
+              <span class="min-w-0 flex-1 truncate">{{ sectionLabels[sectionId] }}</span>
+              <button
+                type="button"
+                class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-slate-200 text-slate-500 disabled:cursor-not-allowed disabled:opacity-35 dark:border-slate-800"
+                :disabled="index === 0"
+                :aria-label="`Move ${sectionLabels[sectionId]} section up`"
+                @pointerdown.stop
+                @click="moveSection(index, index - 1)"
+              >
+                <ArrowUp :size="14" />
+              </button>
+              <button
+                type="button"
+                class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-slate-200 text-slate-500 disabled:cursor-not-allowed disabled:opacity-35 dark:border-slate-800"
+                :disabled="index === orderedSections.length - 1"
+                :aria-label="`Move ${sectionLabels[sectionId]} section down`"
+                @pointerdown.stop
+                @click="moveSection(index, index + 1)"
+              >
+                <ArrowDown :size="14" />
+              </button>
             </div>
           </div>
         </section>
