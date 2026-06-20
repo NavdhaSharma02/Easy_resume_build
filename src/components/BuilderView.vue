@@ -230,7 +230,7 @@ function stopSectionPointerDrag() {
           <EntrySection v-else-if="sectionId === 'achievements'" v-model="resume.data.achievements" title="Achievements" />
           <EntrySection v-else-if="sectionId === 'certifications'" v-model="resume.data.certifications" title="Certifications" />
           <EntrySection v-else-if="sectionId === 'responsibilities'" v-model="resume.data.responsibilities" title="Positions of Responsibility" />
-          <EntrySection v-else-if="sectionId === 'publications'" v-model="resume.data.publications" title="Publications" />
+          <EntrySection v-else-if="sectionId === 'publications'" v-model="resume.data.publications" title="Publications" title-label="Publication link" hide-organization hide-location hide-dates />
         </template>
       </div>
 

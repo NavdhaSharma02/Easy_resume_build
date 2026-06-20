@@ -86,6 +86,24 @@ ${entries.map(projectHeading).join("\n\n")}
       )
     : "";
 
+const publicationHeading = (item: ResumeEntry) => {
+  const link = item.title.trim();
+  const title = link ? `\\href{${latexText(normalizeUrl(link))}}{\\texttt{${latexText(link)}}}` : "\\textbf{Publication}";
+  return `      \\resumeProjectHeading
+          {${title}}{}
+${resumeItems(item.bullets)}`;
+};
+
+const publicationSection = (entries: ResumeEntry[]) =>
+  entries.length
+    ? section(
+        "Publications",
+        `  \\resumeSubHeadingListStart
+${entries.map(publicationHeading).join("\n\n")}
+  \\resumeSubHeadingListEnd`
+      )
+    : "";
+
 const skillsSection = (groups: SkillGroup[]) => {
   const rows = groups
     .filter((group) => group.category || group.items.length)
@@ -130,7 +148,7 @@ const resumeSection = (sectionId: SectionId, data: ResumeData) => {
     case "responsibilities":
       return projectSection("Positions of Responsibility", data.responsibilities);
     case "publications":
-      return projectSection("Publications", data.publications);
+      return publicationSection(data.publications);
   }
 };
 

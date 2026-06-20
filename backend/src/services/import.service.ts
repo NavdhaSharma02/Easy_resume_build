@@ -31,7 +31,7 @@ const headingMap: Record<string, keyof ParsedSections> = {
 const datePattern = /(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{4}\s*(?:-|–|to)?\s*(?:present|current|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{4}|\d{4})|\d{4}\s*(?:-|–|to)\s*(?:present|current|\d{4})/i;
 const emailPattern = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
 const phonePattern = /(?:\+?\d[\d\s().-]{7,}\d)/;
-const urlPattern = /(?:https?:\/\/)?(?:www\.)?[A-Za-z0-9.-]+\.[A-Za-z]{2,}(?:\/[^\s,)]+)?/gi;
+const urlPattern = /(?:https?:\/\/|www\.)[A-Za-z0-9.-]+\.[A-Za-z]{2,}(?:\/[^\s,)]+)?|[a-z0-9.-]+\.(?:com|dev|app|io|me|in|net|org)(?:\/[^\s,)]+)?/gi;
 
 export async function extractResumeText(file: Express.Multer.File) {
   if (file.mimetype === "application/pdf" || file.originalname.toLowerCase().endsWith(".pdf")) {
@@ -92,7 +92,7 @@ export function parseResumeText(text: string): ResumeData {
     achievements: parseEntries(cleanSectionLines(sections.achievements ?? []), "general"),
     certifications: parseEntries(cleanSectionLines(sections.certifications ?? []), "general"),
     responsibilities: parseEntries(cleanSectionLines(sections.responsibilities ?? []), "general"),
-    publications: parseEntries(cleanSectionLines(sections.publications ?? []), "general")
+    publications: parseEntries(cleanSectionLines(sections.publications ?? [], { keepLinks: true }), "general")
   };
 }
 
@@ -198,13 +198,15 @@ function parseEntry(block: string[], kind: "education" | "experience" | "project
     const schoolParts = splitParts(cleanDateText(schoolLine));
     const school = schoolParts[0] ?? cleanDateText(schoolLine);
     const location = schoolParts.slice(1).join(", ");
+    const cgpa = firstMatch(joined, /(?:cgpa|gpa)[:\s]*([0-9.]+(?:\/[0-9.]+)?)/i).replace(/^(?:cgpa|gpa)[:\s]*/i, "")
+      || firstMatch(degree, /\b(?:10(?:\.0)?|[0-9](?:\.[0-9]{1,2})?)\b$/);
     const educationBullets = bulletLines.filter((line) => !isDegreeLine(line) && !isInstitutionLine(line) && !/(?:cgpa|gpa)[:\s]*[0-9.]+/i.test(line));
     return entry({
-      title: cleanDateText(degree),
+      title: cleanCgpaText(cleanDateText(degree)),
       organization: school,
       location,
       dates: date,
-      cgpa: firstMatch(joined, /(?:cgpa|gpa)[:\s]*([0-9.]+(?:\/[0-9.]+)?)/i).replace(/^(?:cgpa|gpa)[:\s]*/i, ""),
+      cgpa,
       bullets: educationBullets
     });
   }
@@ -354,6 +356,7 @@ function isRoleLine(line: string) {
 
 function isMetadataLine(line: string, kind: "education" | "experience" | "projects" | "general") {
   if (datePattern.test(line) || isLinkOnlyLine(line)) return true;
+  if (kind === "education" && (isDegreeLine(line) || isInstitutionLine(line) || /(?:cgpa|gpa)[:\s]*[0-9.]+/i.test(line))) return true;
   if (kind === "projects" && /tech|stack|tools|built with|technologies/i.test(line)) return true;
   return false;
 }
@@ -369,6 +372,10 @@ function removeInlineLinks(line: string) {
 
 function cleanDateText(line: string) {
   return line.replace(datePattern, "").replace(/\b(?:cgpa|gpa)[:\s]*[0-9.]+(?:\/[0-9.]+)?/i, "").replace(/\s{2,}/g, " ").replace(/[|,;-]+$/, "").trim();
+}
+
+function cleanCgpaText(line: string) {
+  return line.replace(/\b(?:10(?:\.0)?|[0-9](?:\.[0-9]{1,2})?)\b$/, "").trim();
 }
 
 function cleanProjectTitle(line: string) {
