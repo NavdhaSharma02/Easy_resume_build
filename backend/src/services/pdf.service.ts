@@ -38,8 +38,7 @@ function compactResumeLatex(latexContent: string, level: "compact" | "ultra") {
         topMargin: "-.72in",
         textHeight: "1.44in",
         bodySize: "\\fontsize{8.8pt}{9.5pt}\\selectfont",
-        bulletLeftMargin: "0.12in",
-        vspace: "-3pt"
+        bulletLeftMargin: "0.12in"
       }
     : {
         lineSpread: "0.86",
@@ -48,8 +47,7 @@ function compactResumeLatex(latexContent: string, level: "compact" | "ultra") {
         topMargin: "-.78in",
         textHeight: "1.56in",
         bodySize: "\\fontsize{8.1pt}{8.8pt}\\selectfont",
-        bulletLeftMargin: "0.1in",
-        vspace: "-5pt"
+        bulletLeftMargin: "0.1in"
       };
 
   return latexContent
@@ -62,7 +60,6 @@ function compactResumeLatex(latexContent: string, level: "compact" | "ultra") {
     .replace(/\\begin\{document\}\s*(?:\\(?:small|footnotesize|scriptsize|fontsize\{[^}]+\}\{[^}]+\}\\selectfont)\s*)?/, `\\begin{document}\n${settings.bodySize}\n`)
     .replaceAll("\\Huge", "\\LARGE")
     .replaceAll("\\large", "\\normalsize")
-    .replace(/\\vspace\{(-?\d+)pt\}/g, (_, value: string) => Number(value) <= 2 ? `\\vspace{${settings.vspace}}` : `\\vspace{${value}pt}`)
     .replace(/\\begin\{itemize\}\[(?:leftmargin=[^,\]]+,\s*)?itemsep=0pt/g, `\\begin{itemize}[leftmargin=${settings.bulletLeftMargin}, itemsep=0pt`);
 }
 
@@ -79,16 +76,17 @@ function forceOnePageLatex(latexContent: string) {
   const preamble = latexContent.slice(0, beginIndex);
   const body = latexContent.slice(beginIndex + beginDocument.length, endIndex).trim();
   const tail = latexContent.slice(endIndex);
-  const graphicxPreamble = preamble.includes("\\usepackage{graphicx}")
-    ? preamble
-    : `${preamble}\\usepackage{graphicx}\n`;
+  const packagePreamble = [
+    preamble,
+    preamble.includes("\\usepackage{adjustbox}") ? "" : "\\usepackage{adjustbox}\n"
+  ].join("");
 
-  return `${graphicxPreamble}${beginDocument}
-\\noindent\\resizebox{\\textwidth}{\\textheight}{%
+  return `${packagePreamble}${beginDocument}
+\\noindent\\begin{adjustbox}{max totalsize={\\textwidth}{\\textheight},center}
 \\begin{minipage}{\\textwidth}
 ${body}
-\\end{minipage}%
-}
+\\end{minipage}
+\\end{adjustbox}
 ${tail}`;
 }
 
@@ -154,7 +152,7 @@ export async function compileLatexToPdf(latexContent: string) {
     const attempts = [
       latexContent,
       compactResumeLatex(latexContent, "compact"),
-      compactResumeLatex(latexContent, "ultra"),
+      forceOnePageLatex(compactResumeLatex(latexContent, "compact")),
       forceOnePageLatex(compactResumeLatex(latexContent, "ultra"))
     ];
     let lastPageCount = 0;
