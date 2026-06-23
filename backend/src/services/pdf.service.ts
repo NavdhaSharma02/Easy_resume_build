@@ -37,7 +37,7 @@ function compactResumeLatex(latexContent: string, level: "compact" | "ultra") {
         textWidth: "1.44in",
         topMargin: "-.72in",
         textHeight: "1.44in",
-        bodySize: "\\fontsize{8.8pt}{9.5pt}\\selectfont",
+        bodySize: "\\fontsize{8.8pt}{9.9pt}\\selectfont",
         bulletLeftMargin: "0.12in"
       }
     : {
@@ -46,7 +46,7 @@ function compactResumeLatex(latexContent: string, level: "compact" | "ultra") {
         textWidth: "1.56in",
         topMargin: "-.78in",
         textHeight: "1.56in",
-        bodySize: "\\fontsize{8.1pt}{8.8pt}\\selectfont",
+        bodySize: "\\fontsize{8.1pt}{9.2pt}\\selectfont",
         bulletLeftMargin: "0.1in"
       };
 
