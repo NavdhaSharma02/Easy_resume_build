@@ -10,6 +10,11 @@ import { sanitizeLatex } from "../utils/latex.js";
 const execFileAsync = promisify(execFile);
 const dockerTimeoutMs = 10 * 60 * 1000;
 
+type CompiledPdf = {
+  pdf: Buffer;
+  pageCount: number;
+};
+
 function summarizeLatexError(log: string, fallback: string) {
   const bangIndex = log.indexOf("\n!");
   if (bangIndex >= 0) {
@@ -24,6 +29,69 @@ function summarizeLatexError(log: string, fallback: string) {
   return log.trim().slice(-1200) || fallback;
 }
 
+function compactResumeLatex(latexContent: string, level: "compact" | "ultra") {
+  const settings = level === "compact"
+    ? {
+        lineSpread: "0.91",
+        sideMargin: "-0.72in",
+        textWidth: "1.44in",
+        topMargin: "-.72in",
+        textHeight: "1.44in",
+        bodySize: "\\fontsize{8.8pt}{9.5pt}\\selectfont",
+        bulletLeftMargin: "0.12in",
+        vspace: "-3pt"
+      }
+    : {
+        lineSpread: "0.86",
+        sideMargin: "-0.78in",
+        textWidth: "1.56in",
+        topMargin: "-.78in",
+        textHeight: "1.56in",
+        bodySize: "\\fontsize{8.1pt}{8.8pt}\\selectfont",
+        bulletLeftMargin: "0.1in",
+        vspace: "-5pt"
+      };
+
+  return latexContent
+    .replace(/\\documentclass\[letterpaper,[^\]]+\]\{article\}/, "\\documentclass[letterpaper,10pt]{article}")
+    .replace(/\\linespread\{[^}]+\}/, `\\linespread{${settings.lineSpread}}`)
+    .replace(/\\addtolength\{\\oddsidemargin\}\{[^}]+\}/, `\\addtolength{\\oddsidemargin}{${settings.sideMargin}}`)
+    .replace(/\\addtolength\{\\textwidth\}\{[^}]+\}/, `\\addtolength{\\textwidth}{${settings.textWidth}}`)
+    .replace(/\\addtolength\{\\topmargin\}\{[^}]+\}/, `\\addtolength{\\topmargin}{${settings.topMargin}}`)
+    .replace(/\\addtolength\{\\textheight\}\{[^}]+\}/, `\\addtolength{\\textheight}{${settings.textHeight}}`)
+    .replace(/\\begin\{document\}\s*(?:\\(?:small|footnotesize|scriptsize|fontsize\{[^}]+\}\{[^}]+\}\\selectfont)\s*)?/, `\\begin{document}\n${settings.bodySize}\n`)
+    .replaceAll("\\Huge", "\\LARGE")
+    .replaceAll("\\large", "\\normalsize")
+    .replace(/\\vspace\{(-?\d+)pt\}/g, (_, value: string) => Number(value) <= 2 ? `\\vspace{${settings.vspace}}` : `\\vspace{${value}pt}`)
+    .replace(/\\begin\{itemize\}\[(?:leftmargin=[^,\]]+,\s*)?itemsep=0pt/g, `\\begin{itemize}[leftmargin=${settings.bulletLeftMargin}, itemsep=0pt`);
+}
+
+function forceOnePageLatex(latexContent: string) {
+  const beginDocument = "\\begin{document}";
+  const endDocument = "\\end{document}";
+  const beginIndex = latexContent.indexOf(beginDocument);
+  const endIndex = latexContent.lastIndexOf(endDocument);
+
+  if (beginIndex < 0 || endIndex < 0 || endIndex <= beginIndex) {
+    return latexContent;
+  }
+
+  const preamble = latexContent.slice(0, beginIndex);
+  const body = latexContent.slice(beginIndex + beginDocument.length, endIndex).trim();
+  const tail = latexContent.slice(endIndex);
+  const graphicxPreamble = preamble.includes("\\usepackage{graphicx}")
+    ? preamble
+    : `${preamble}\\usepackage{graphicx}\n`;
+
+  return `${graphicxPreamble}${beginDocument}
+\\noindent\\resizebox{\\textwidth}{\\textheight}{%
+\\begin{minipage}{\\textwidth}
+${body}
+\\end{minipage}%
+}
+${tail}`;
+}
+
 async function countPdfPages(pdf: Buffer) {
   const parser = new PDFParse({ data: pdf });
 
@@ -35,6 +103,46 @@ async function countPdfPages(pdf: Buffer) {
   }
 }
 
+async function runLatex(texPath: string, pdfPath: string, workdir: string, latexContent: string): Promise<CompiledPdf> {
+  await writeFile(texPath, sanitizeLatex(latexContent), "utf8");
+  if (env.PDF_ENGINE === "local") {
+    await execFileAsync("pdflatex", ["-interaction=nonstopmode", "-halt-on-error", "resume.tex"], {
+      cwd: workdir,
+      timeout: dockerTimeoutMs
+    });
+  } else {
+    await execFileAsync(
+      "docker",
+      [
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "--cpus",
+        "1",
+        "--memory",
+        "1g",
+        "-v",
+        `${workdir}:/work`,
+        "-w",
+        "/work",
+        env.LATEX_DOCKER_IMAGE,
+        "pdflatex",
+        "-interaction=nonstopmode",
+        "-halt-on-error",
+        "resume.tex"
+      ],
+      { timeout: dockerTimeoutMs }
+    );
+  }
+
+  const pdf = await readFile(pdfPath);
+  return {
+    pdf,
+    pageCount: await countPdfPages(pdf)
+  };
+}
+
 export async function compileLatexToPdf(latexContent: string) {
   const workdir = path.join(tmpdir(), `easy-resume-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   const texPath = path.join(workdir, "resume.tex");
@@ -43,46 +151,23 @@ export async function compileLatexToPdf(latexContent: string) {
   await mkdir(workdir, { recursive: true });
 
   try {
-    await writeFile(texPath, sanitizeLatex(latexContent), "utf8");
-    if (env.PDF_ENGINE === "local") {
-      await execFileAsync("pdflatex", ["-interaction=nonstopmode", "-halt-on-error", "resume.tex"], {
-        cwd: workdir,
-        timeout: dockerTimeoutMs
-      });
-    } else {
-      await execFileAsync(
-        "docker",
-        [
-          "run",
-          "--rm",
-          "--network",
-          "none",
-          "--cpus",
-          "1",
-          "--memory",
-          "1g",
-          "-v",
-          `${workdir}:/work`,
-          "-w",
-          "/work",
-          env.LATEX_DOCKER_IMAGE,
-          "pdflatex",
-          "-interaction=nonstopmode",
-          "-halt-on-error",
-          "resume.tex"
-        ],
-        { timeout: dockerTimeoutMs }
-      );
+    const attempts = [
+      latexContent,
+      compactResumeLatex(latexContent, "compact"),
+      compactResumeLatex(latexContent, "ultra"),
+      forceOnePageLatex(compactResumeLatex(latexContent, "ultra"))
+    ];
+    let lastPageCount = 0;
+
+    for (const attempt of attempts) {
+      const { pdf, pageCount } = await runLatex(texPath, pdfPath, workdir, attempt);
+      if (pageCount === 1) {
+        return pdf;
+      }
+      lastPageCount = pageCount;
     }
 
-    const pdf = await readFile(pdfPath);
-    const pageCount = await countPdfPages(pdf);
-
-    if (pageCount !== 1) {
-      throw new Error(`PDF generation failed. Resume output must be exactly one page, but generated ${pageCount} pages.`);
-    }
-
-    return pdf;
+    throw new Error(`PDF generation failed. Resume output must be exactly one page, but generated ${lastPageCount} pages.`);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown LaTeX compilation error";
     if (message.startsWith("PDF generation failed.")) {
