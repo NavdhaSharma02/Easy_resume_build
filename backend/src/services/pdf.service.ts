@@ -9,7 +9,6 @@ import { sanitizeLatex } from "../utils/latex.js";
 
 const execFileAsync = promisify(execFile);
 const dockerTimeoutMs = 10 * 60 * 1000;
-const onePageWrapperPackage = "\\usepackage{adjustbox}";
 
 function summarizeLatexError(log: string, fallback: string) {
   const bangIndex = log.indexOf("\n!");
@@ -23,32 +22,6 @@ function summarizeLatexError(log: string, fallback: string) {
   }
 
   return log.trim().slice(-1200) || fallback;
-}
-
-function enforceOnePageLatex(latexContent: string) {
-  const beginDocument = "\\begin{document}";
-  const endDocument = "\\end{document}";
-  const beginIndex = latexContent.indexOf(beginDocument);
-  const endIndex = latexContent.lastIndexOf(endDocument);
-
-  if (beginIndex < 0 || endIndex < 0 || endIndex <= beginIndex) {
-    return latexContent;
-  }
-
-  const preamble = latexContent.slice(0, beginIndex);
-  const documentBody = latexContent.slice(beginIndex + beginDocument.length, endIndex);
-  const tail = latexContent.slice(endIndex);
-  const wrappedPreamble = preamble.includes(onePageWrapperPackage)
-    ? preamble
-    : `${preamble}${onePageWrapperPackage}\n`;
-
-  return `${wrappedPreamble}${beginDocument}
-\\begin{adjustbox}{max totalsize={\\textwidth}{\\textheight},center}
-\\begin{minipage}{\\textwidth}
-${documentBody.trim()}
-\\end{minipage}
-\\end{adjustbox}
-${tail}`;
 }
 
 async function countPdfPages(pdf: Buffer) {
@@ -70,7 +43,7 @@ export async function compileLatexToPdf(latexContent: string) {
   await mkdir(workdir, { recursive: true });
 
   try {
-    await writeFile(texPath, sanitizeLatex(enforceOnePageLatex(latexContent)), "utf8");
+    await writeFile(texPath, sanitizeLatex(latexContent), "utf8");
     if (env.PDF_ENGINE === "local") {
       await execFileAsync("pdflatex", ["-interaction=nonstopmode", "-halt-on-error", "resume.tex"], {
         cwd: workdir,

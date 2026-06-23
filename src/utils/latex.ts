@@ -207,21 +207,22 @@ const layoutForResume = (data: ResumeData) => {
   if (score > 9000) {
     return {
       documentSize: "10pt",
-      lineSpread: "0.97",
-      sideMargin: "-0.58in",
-      textWidth: "1.16in",
-      topMargin: "-.58in",
-      textHeight: "1.16in",
-      sectionBefore: "-1pt",
+      lineSpread: "0.94",
+      sideMargin: "-0.68in",
+      textWidth: "1.36in",
+      topMargin: "-.66in",
+      textHeight: "1.32in",
+      sectionBefore: "-3pt",
       sectionSize: "\\normalsize",
       ruleWidth: "1.2pt",
-      sectionAfter: "-5pt",
-      itemSpace: "-2pt",
-      subheadingBefore: "-2pt",
+      sectionAfter: "-6pt",
+      itemSpace: "-3pt",
+      subheadingBefore: "-3pt",
       subheadingRowSpace: "0pt",
-      subheadingAfter: "-4pt",
-      projectAfter: "-2pt",
-      itemListEnd: "-2pt",
+      subheadingAfter: "-5pt",
+      projectAfter: "-3pt",
+      itemListEnd: "-4pt",
+      bulletLeftMargin: "0.14in",
       nameSize: "\\LARGE",
       bodySize: "\\small"
     };
@@ -245,6 +246,7 @@ const layoutForResume = (data: ResumeData) => {
       subheadingAfter: "-3pt",
       projectAfter: "-1pt",
       itemListEnd: "0pt",
+      bulletLeftMargin: "0.18in",
       nameSize: "\\LARGE",
       bodySize: ""
     };
@@ -267,6 +269,7 @@ const layoutForResume = (data: ResumeData) => {
     subheadingAfter: "-2pt",
     projectAfter: "0pt",
     itemListEnd: "0pt",
+    bulletLeftMargin: "0.2in",
     nameSize: "\\Huge",
     bodySize: ""
   };
@@ -356,7 +359,7 @@ export function generateLatex(data: ResumeData, template: TemplateId) {
 \\renewcommand\\labelitemii{$\\vcenter{\\hbox{\\tiny$\\bullet$}}$}
 \\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0in, label={}, itemsep=0pt, topsep=0pt, parsep=0pt, partopsep=0pt]}
 \\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
-\\newcommand{\\resumeItemListStart}{\\begin{itemize}[itemsep=0pt, topsep=0pt, parsep=0pt, partopsep=0pt]}
+\\newcommand{\\resumeItemListStart}{\\begin{itemize}[leftmargin=${layout.bulletLeftMargin}, itemsep=0pt, topsep=0pt, parsep=0pt, partopsep=0pt]}
 \\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{${layout.itemListEnd}}}
 
 \\color{text-grey}
