@@ -66,22 +66,25 @@ const summarySection = (summary = "") =>
     ? section("Summary", `  \\small{${latexText(summary)}}`)
     : "";
 
-const subheadingSection = (title: string, entries: ResumeEntry[], options: { showCgpa?: boolean; hideLocation?: boolean } = {}) =>
+const joinEntries = (entries: string[], gapBetweenEntries = false) =>
+  entries.join(gapBetweenEntries ? "\n      \\resumeEntryGap\n" : "\n\n");
+
+const subheadingSection = (title: string, entries: ResumeEntry[], options: { showCgpa?: boolean; hideLocation?: boolean; gapBetweenEntries?: boolean } = {}) =>
   entries.length
     ? section(
         title,
         `  \\resumeSubHeadingListStart
-${entries.map((item) => subheading(item, options)).join("\n\n")}
+${joinEntries(entries.map((item) => subheading(item, options)), options.gapBetweenEntries)}
   \\resumeSubHeadingListEnd`
       )
     : "";
 
-const projectSection = (title: string, entries: ResumeEntry[]) =>
+const projectSection = (title: string, entries: ResumeEntry[], gapBetweenEntries = false) =>
   entries.length
     ? section(
         title,
         `  \\resumeSubHeadingListStart
-${entries.map(projectHeading).join("\n\n")}
+${joinEntries(entries.map(projectHeading), gapBetweenEntries)}
   \\resumeSubHeadingListEnd`
       )
     : "";
@@ -134,9 +137,9 @@ const resumeSection = (sectionId: SectionId, data: ResumeData) => {
     case "summary":
       return summarySection(data.summary);
     case "experience":
-      return subheadingSection("Experience", data.experience, { hideLocation: true });
+      return subheadingSection("Experience", data.experience, { hideLocation: true, gapBetweenEntries: true });
     case "projects":
-      return projectSection("Projects", data.projects);
+      return projectSection("Projects", data.projects, true);
     case "education":
       return subheadingSection("Education", data.education, { showCgpa: true });
     case "skills":
@@ -219,8 +222,9 @@ const layoutForResume = (data: ResumeData) => {
       itemSpace: "-3.25pt",
       subheadingBefore: "-3pt",
       subheadingRowSpace: "0pt",
-      subheadingAfter: "-2pt",
-      projectAfter: "-1pt",
+      subheadingAfter: "-4pt",
+      projectAfter: "-3pt",
+      entryGap: "1pt",
       itemListEnd: "-2pt",
       bulletLeftMargin: "0.14in",
       nameSize: "\\LARGE",
@@ -243,8 +247,9 @@ const layoutForResume = (data: ResumeData) => {
       itemSpace: "-1.25pt",
       subheadingBefore: "-1pt",
       subheadingRowSpace: "1pt",
-      subheadingAfter: "-2pt",
-      projectAfter: "-1pt",
+      subheadingAfter: "-4pt",
+      projectAfter: "-3pt",
+      entryGap: "2pt",
       itemListEnd: "0pt",
       bulletLeftMargin: "0.18in",
       nameSize: "\\LARGE",
@@ -266,8 +271,9 @@ const layoutForResume = (data: ResumeData) => {
     itemSpace: "-0.25pt",
     subheadingBefore: "0pt",
     subheadingRowSpace: "1pt",
-    subheadingAfter: "-2pt",
-    projectAfter: "0pt",
+    subheadingAfter: "-4pt",
+    projectAfter: "-2pt",
+    entryGap: "3pt",
     itemListEnd: "0pt",
     bulletLeftMargin: "0.2in",
     nameSize: "\\Huge",
@@ -361,6 +367,7 @@ export function generateLatex(data: ResumeData, template: TemplateId) {
 \\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
 \\newcommand{\\resumeItemListStart}{\\begin{itemize}[leftmargin=${layout.bulletLeftMargin}, itemsep=0pt, topsep=0pt, parsep=0pt, partopsep=0pt]}
 \\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{${layout.itemListEnd}}}
+\\newcommand{\\resumeEntryGap}{\\vspace{${layout.entryGap}}}
 
 \\color{text-grey}
 
