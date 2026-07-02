@@ -29,38 +29,60 @@ function summarizeLatexError(log: string, fallback: string) {
   return log.trim().slice(-1200) || fallback;
 }
 
-function compactResumeLatex(latexContent: string, level: "compact" | "ultra") {
-  const settings = level === "compact"
-    ? {
-        lineSpread: "0.91",
-        sideMargin: "-0.72in",
-        textWidth: "1.44in",
-        topMargin: "-.72in",
-        textHeight: "1.44in",
-        bodySize: "\\fontsize{8.8pt}{9.9pt}\\selectfont",
-        bulletLeftMargin: "0.12in"
-      }
-    : {
-        lineSpread: "0.86",
-        sideMargin: "-0.78in",
-        textWidth: "1.56in",
-        topMargin: "-.78in",
-        textHeight: "1.56in",
-        bodySize: "\\fontsize{8.1pt}{9.2pt}\\selectfont",
-        bulletLeftMargin: "0.1in"
-      };
+type FontScaleLevel = "slight" | "compact" | "tight" | "ultra";
+
+function fontSizeCommand(size: number, leading: number) {
+  return `\\fontsize{${size}pt}{${leading}pt}\\selectfont`;
+}
+
+function scaleResumeFonts(latexContent: string, level: FontScaleLevel) {
+  const settings = {
+    slight: {
+      documentSize: "10pt",
+      huge: fontSizeCommand(22, 24),
+      large: fontSizeCommand(14, 16),
+      section: fontSizeCommand(11, 13),
+      normal: fontSizeCommand(10, 12),
+      small: fontSizeCommand(9, 10.5),
+      body: fontSizeCommand(9.6, 11.2)
+    },
+    compact: {
+      documentSize: "10pt",
+      huge: fontSizeCommand(20, 22),
+      large: fontSizeCommand(13, 15),
+      section: fontSizeCommand(10.5, 12.5),
+      normal: fontSizeCommand(9.5, 11.2),
+      small: fontSizeCommand(8.5, 9.8),
+      body: fontSizeCommand(9.1, 10.6)
+    },
+    tight: {
+      documentSize: "10pt",
+      huge: fontSizeCommand(18, 20),
+      large: fontSizeCommand(12, 14),
+      section: fontSizeCommand(10, 12),
+      normal: fontSizeCommand(9, 10.5),
+      small: fontSizeCommand(8, 9.2),
+      body: fontSizeCommand(8.6, 10)
+    },
+    ultra: {
+      documentSize: "10pt",
+      huge: fontSizeCommand(16, 18),
+      large: fontSizeCommand(11, 13),
+      section: fontSizeCommand(9.5, 11.2),
+      normal: fontSizeCommand(8.5, 9.8),
+      small: fontSizeCommand(7.6, 8.8),
+      body: fontSizeCommand(8.1, 9.4)
+    }
+  }[level];
 
   return latexContent
-    .replace(/\\documentclass\[letterpaper,[^\]]+\]\{article\}/, "\\documentclass[letterpaper,10pt]{article}")
-    .replace(/\\linespread\{[^}]+\}/, `\\linespread{${settings.lineSpread}}`)
-    .replace(/\\addtolength\{\\oddsidemargin\}\{[^}]+\}/, `\\addtolength{\\oddsidemargin}{${settings.sideMargin}}`)
-    .replace(/\\addtolength\{\\textwidth\}\{[^}]+\}/, `\\addtolength{\\textwidth}{${settings.textWidth}}`)
-    .replace(/\\addtolength\{\\topmargin\}\{[^}]+\}/, `\\addtolength{\\topmargin}{${settings.topMargin}}`)
-    .replace(/\\addtolength\{\\textheight\}\{[^}]+\}/, `\\addtolength{\\textheight}{${settings.textHeight}}`)
-    .replace(/\\begin\{document\}\s*(?:\\(?:small|footnotesize|scriptsize|fontsize\{[^}]+\}\{[^}]+\}\\selectfont)\s*)?/, `\\begin{document}\n${settings.bodySize}\n`)
-    .replaceAll("\\Huge", "\\LARGE")
-    .replaceAll("\\large", "\\normalsize")
-    .replace(/\\begin\{itemize\}\[(?:leftmargin=[^,\]]+,\s*)?itemsep=0pt/g, `\\begin{itemize}[leftmargin=${settings.bulletLeftMargin}, itemsep=0pt`);
+    .replace(/\\documentclass\[letterpaper,[^\]]+\]\{article\}/, `\\documentclass[letterpaper,${settings.documentSize}]{article}`)
+    .replace(/\\begin\{document\}\s*(?:\\(?:small|footnotesize|scriptsize|fontsize\{[^}]+\}\{[^}]+\}\\selectfont)\s*)?/, `\\begin{document}\n${settings.body}\n`)
+    .replaceAll("\\Huge", settings.huge)
+    .replaceAll("\\LARGE", settings.large)
+    .replaceAll("\\large", settings.section)
+    .replaceAll("\\normalsize", settings.normal)
+    .replaceAll("\\small", settings.small);
 }
 
 function forceOnePageLatex(latexContent: string) {
@@ -151,9 +173,11 @@ export async function compileLatexToPdf(latexContent: string) {
   try {
     const attempts = [
       latexContent,
-      compactResumeLatex(latexContent, "compact"),
-      forceOnePageLatex(compactResumeLatex(latexContent, "compact")),
-      forceOnePageLatex(compactResumeLatex(latexContent, "ultra"))
+      scaleResumeFonts(latexContent, "slight"),
+      scaleResumeFonts(latexContent, "compact"),
+      scaleResumeFonts(latexContent, "tight"),
+      scaleResumeFonts(latexContent, "ultra"),
+      forceOnePageLatex(scaleResumeFonts(latexContent, "ultra"))
     ];
     let lastPageCount = 0;
 
