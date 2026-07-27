@@ -10,6 +10,6 @@ Easy_Resume is an ATS-friendly LaTeX resume builder with a Vue frontend, Express
 - Authentication: JWT and bcrypt
 - PDF generation: TeX Live inside Docker
 
-## Live website link 
+
 
 
