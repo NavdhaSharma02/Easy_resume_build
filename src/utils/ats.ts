@@ -1,5 +1,5 @@
 import type { AtsReport, ResumeData } from "../types/resume";
-import { contentScore } from "./latexGenerator"; // 👈 export this from latexGenerator.ts
+import { contentScore } from "./latex";
 
 const actionVerbs = ["developed", "implemented", "optimized", "designed", "automated", "built", "improved", "reduced", "increased"];
 const weakPhrases = ["worked on", "helped with", "responsible for"];

@@ -187,7 +187,7 @@ const headerContactLine = (data: ResumeData) => {
 const entryText = (entry: ResumeEntry) =>
   [entry.title, entry.organization, entry.location, entry.dates, entry.cgpa, ...entry.bullets].join(" ");
 
-const contentScore = (data: ResumeData) => {
+export const contentScore = (data: ResumeData) => {
   const entries = [
     ...data.education,
     ...data.experience,

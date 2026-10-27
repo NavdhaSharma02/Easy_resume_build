@@ -163,7 +163,7 @@ async function runLatex(texPath: string, pdfPath: string, workdir: string, latex
   };
 }
 
-export async function compileLatexToPdf(latexContent: string) {
+export async function compileLatexToPdf(latexContent: string): Promise<CompiledPdf> {
   const workdir = path.join(tmpdir(), `easy-resume-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   const texPath = path.join(workdir, "resume.tex");
   const pdfPath = path.join(workdir, "resume.pdf");
@@ -184,7 +184,7 @@ export async function compileLatexToPdf(latexContent: string) {
     for (const attempt of attempts) {
       const { pdf, pageCount } = await runLatex(texPath, pdfPath, workdir, attempt);
       if (pageCount === 1) {
-        return pdf;
+        return { pdf, pageCount };
       }
       lastPageCount = pageCount;
     }

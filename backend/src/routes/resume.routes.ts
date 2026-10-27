@@ -151,7 +151,7 @@ router.post("/:id/generate-pdf", validate(idSchema, "params"), async (req: Authe
   const latexContent = resume.latexContent ?? generateLatex(resume.resumeData as ResumeData, template);
 
   try {
-    const pdf = await compileLatexToPdf(latexContent);
+    const { pdf } = await compileLatexToPdf(latexContent);
     res
       .status(200)
       .setHeader("Content-Type", "application/pdf")
