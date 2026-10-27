@@ -54,7 +54,7 @@ export function analyzeResume(data: ResumeData, jobDescription: string): AtsRepo
     missingKeywords,
     strengths,
     issues,
-    overPageLimit  // 👈 add this to AtsReport type too
+    overPageLimit
   };
 }
 

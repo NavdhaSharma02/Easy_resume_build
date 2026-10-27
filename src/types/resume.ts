@@ -87,5 +87,5 @@ export type AtsReport = {
   missingKeywords: string[];
   strengths: string[];
   issues: string[];
-  overPageLimit?: boolean; // 👈 true when content density exceeds one-page threshold
+  overPageLimit: boolean;
 };
