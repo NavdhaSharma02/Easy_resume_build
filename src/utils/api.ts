@@ -1,6 +1,13 @@
-export const API_URL = (import.meta.env.VITE_API_URL ?? "http://127.0.0.1:4000").replace(/\/+$/, "");
+const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
 
-export const apiUrl = (path: string) => `${API_URL}${path}`;
+export const API_URL = (configuredApiUrl || (import.meta.env.DEV ? "http://127.0.0.1:4000" : "")).replace(/\/+$/, "");
+
+export const apiUrl = (path: string) => {
+  if (!API_URL) {
+    throw new Error("VITE_API_URL must be set to the deployed backend URL for production.");
+  }
+  return `${API_URL}${path}`;
+};
 
 export const tokenStorageKey = "easy_resume_token";
 export const userStorageKey = "easy_resume_user";
