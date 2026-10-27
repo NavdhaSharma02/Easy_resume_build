@@ -25,3 +25,24 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}) {
   if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
 }
+
+// Specific helper for PDF export — returns pdf blob + optional one-page warning
+export async function exportPdfRequest(path: string): Promise<{ blob: Blob; warning?: string }> {
+  const token = localStorage.getItem(tokenStorageKey);
+  const response = await fetch(apiUrl(path), {
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: "Export failed" }));
+    throw new Error(error.message);
+  }
+
+  // Backend signals overflow via a custom header
+  const warning = response.headers.get("X-Resume-Warning") ?? undefined;
+  const blob = await response.blob();
+
+  return { blob, warning };
+}

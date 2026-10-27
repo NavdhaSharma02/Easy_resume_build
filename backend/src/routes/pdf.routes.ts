@@ -11,11 +11,17 @@ const generatePdfSchema = z.object({
 
 router.post("/generate", validate(generatePdfSchema), async (req, res) => {
   try {
-    const pdf = await compileLatexToPdf(req.body.latexContent);
+    const { pdf, pageCount } = await compileLatexToPdf(req.body.latexContent);
+
     res
       .status(200)
       .setHeader("Content-Type", "application/pdf")
       .setHeader("Content-Disposition", 'attachment; filename="resume.pdf"')
+      .setHeader("Access-Control-Expose-Headers", "X-Resume-Warning") // needed for browser to read custom headers
+      .setHeader(
+        "X-Resume-Warning",
+        pageCount > 1 ? `Resume is ${pageCount} pages. Consider trimming content to fit one page.` : ""
+      )
       .send(pdf);
   } catch (error) {
     res.status(422).json({

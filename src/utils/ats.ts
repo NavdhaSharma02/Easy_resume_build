@@ -1,7 +1,10 @@
 import type { AtsReport, ResumeData } from "../types/resume";
+import { contentScore } from "./latexGenerator"; // 👈 export this from latexGenerator.ts
 
 const actionVerbs = ["developed", "implemented", "optimized", "designed", "automated", "built", "improved", "reduced", "increased"];
 const weakPhrases = ["worked on", "helped with", "responsible for"];
+
+const ONE_PAGE_SCORE_LIMIT = 13000; // tune this based on testing
 
 export function analyzeResume(data: ResumeData, jobDescription: string): AtsReport {
   const text = JSON.stringify(data).toLowerCase();
@@ -32,6 +35,15 @@ export function analyzeResume(data: ResumeData, jobDescription: string): AtsRepo
   if (weakCount) issues.push("Replace weak phrases with stronger accomplishment-led bullets");
   if (missingKeywords.length) issues.push("Missing relevant job-description keywords");
 
+  // ✅ One-page density check
+  const density = contentScore(data);
+  const overPageLimit = density > ONE_PAGE_SCORE_LIMIT;
+  if (overPageLimit) {
+    issues.push("Resume content may exceed one page — consider trimming bullet points or removing sections");
+  } else {
+    strengths.push("Content fits within one page");
+  }
+
   const sectionScore = Math.round((requiredSections.filter(([, ok]) => ok).length / requiredSections.length) * 25);
   const impactScore = Math.max(0, Math.min(15, verbCount * 2 + quantified * 2 - weakCount * 3));
   const score = Math.min(100, 25 + sectionScore + Math.round(keywordMatch * 0.25) + impactScore + 8);
@@ -41,7 +53,8 @@ export function analyzeResume(data: ResumeData, jobDescription: string): AtsRepo
     keywordMatch,
     missingKeywords,
     strengths,
-    issues
+    issues,
+    overPageLimit  // 👈 add this to AtsReport type too
   };
 }
 
